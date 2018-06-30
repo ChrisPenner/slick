@@ -1,0 +1,57 @@
+name:                sitepipe-shake
+version:             0.1.0.0
+github:              "ChrisPenner/sitepipe-shake"
+license:             BSD3
+author:              "Chris Penner"
+maintainer:          "example@example.com"
+copyright:           "2018 Chris Penner"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/ChrisPenner/sitepipe-shake#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- shake
+- mustache-shake
+- aeson
+- lens-aeson
+- lens
+- pandoc
+- text
+- binary
+- bytestring
+
+library:
+  source-dirs: src
+
+executables:
+  sitepipe-shake-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - sitepipe-shake
+
+tests:
+  sitepipe-shake-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - sitepipe-shake

@@ -1,0 +1,4 @@
+.stack-work/
+sitepipe-shake.cabal
+*~
+.shake/

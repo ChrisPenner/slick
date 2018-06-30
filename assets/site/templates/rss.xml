@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:media="http://search.yahoo.com/mrss/">
+<channel>
+  <title>Chris Penner</title>
+  <link>{{domain}}</link>
+  <atom:link href="{{domain}}{{url}}" rel="self" type="application/rss+xml" />
+  <description>The Personal blog and musings of Chris Penner; designer, developer and future opsimath.</description>
+  <category>Technology</category>
+  <copyright>2014 Chris Penner</copyright>
+  <language>en-us</language>
+  <image>
+      <url>{{domain}}/images/favicon.png</url>
+    <title>Chris Penner</title>
+    <link>{{domain}}</link>
+  </image>
+  {{#posts}}
+  <item>
+      <title>{{title}}</title>
+      <author>chris@chrispenner.ca (Chris Penner)</author>
+      <link>{{domain}}{{url}}</link>
+      <guid>{{domain}}{{url}}</guid>
+      <pubDate>{{date}}</pubDate>
+      <description>{{description}}...</description>
+        {{#image}}
+            <media:thumbnail url='{{domain}}/images/{{{image}}}' height='75' width='75' />
+        {{/image}}
+      <content:encoded><![CDATA[
+        {{#image}}
+            <img src="{{domain}}/images/{{{image}}}" alt="{{title}}">
+        {{/image}}
+        {{{content}}}
+      ]]></content:encoded>
+  </item>
+  {{/posts}}
+</channel>
+</rss>

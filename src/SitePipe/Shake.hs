@@ -7,11 +7,15 @@ import Data.Map
 import qualified Data.Text as T
 import Development.Shake hiding (Resource)
 import Text.Pandoc
+import Text.Pandoc.Highlighting
 import Text.Pandoc.Shared
 
 markdownOptions :: ReaderOptions
-markdownOptions =
-  def {readerExtensions = extensionsFromList [Ext_yaml_metadata_block]}
+markdownOptions = def {readerExtensions = exts}
+  where
+    exts =
+      mconcat
+        [extensionsFromList [Ext_yaml_metadata_block], githubMarkdownExtensions]
 
 -- resourceLoader' ::
 --      (FromJSON v) => (String -> Action String) -> [FilePath] -> Action [v]
@@ -30,17 +34,23 @@ loadWith fileReader filePath = do
 unPandocM :: PandocPure a -> Action a
 unPandocM = either (fail . show) return . runPure
 
-markdownReader :: (FromJSON a) => String -> Action a
+markdownReader :: String -> Action Value
 markdownReader file = do
   pdoc@(Pandoc (Meta meta) _) <-
     unPandocM $ readMarkdown markdownOptions (T.pack file)
-  htmlString <- unPandocM $ writeHtml5String def pdoc
-  liftIO $ print $ "SOURCE:" ++ (file)
-  liftIO $ print $ "META:" ++ show (flattenMeta (Meta meta))
+  htmlString <-
+    unPandocM $ writeHtml5String def {writerHighlightStyle = Just tango} pdoc
   let withContent = insert "content" (MetaString $ T.unpack htmlString) (meta)
-  case fromJSON $ flattenMeta (Meta withContent) of
+  return $ flattenMeta (Meta withContent)
+
+markdownReader' :: (FromJSON a) => String -> Action a
+markdownReader' file = markdownReader file >>= convert
+
+convert :: (FromJSON a, ToJSON a, FromJSON b) => a -> Action b
+convert a =
+  case fromJSON (toJSON a) of
     Success r -> pure r
-    Error err -> fail $ "error in markdownReader:" ++ err
+    Error err -> fail $ "json conversion error:" ++ err
 
 flattenMeta :: Meta -> Value
 flattenMeta (Meta meta) = toJSON $ fmap go meta

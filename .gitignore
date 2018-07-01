@@ -2,3 +2,4 @@
 sitepipe-shake.cabal
 *~
 .shake/
+dist/

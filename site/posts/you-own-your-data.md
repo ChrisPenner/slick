@@ -34,4 +34,3 @@ Though this system has its own challenges, I believe it solves some major proble
 * Extensible. (Once everyone is hosting their own data and the process is standardized in some fashion, new programs and social networks can simply use existing data-stores and people don't need to rebuild their virtual life every 5 years)
 
 *It'll take work, it'll be a tough change, but if we don't demand it, it'll never happen.*
-

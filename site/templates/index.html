@@ -9,10 +9,10 @@
     <link rel="alternative" type="application/rss+xml" title="Chris Penner RSS Feed" href="/atom.xml" />
     <link rel="icon" type="image/png" href="/images/favicon.png">
     <link rel="stylesheet" href="/css/style.css">
-    {{>templates/head.html}}
+    {{>site/templates/head.html}}
 </head>
 <body>
-    {{> templates/header.html}}
+    {{>site/templates/header.html}}
 
 <div id="page">
             <section class="table-of-contents">
@@ -26,8 +26,8 @@
                         {{/tags}}
                     </span>
                 </div>
-                {{>templates/post-list.html}}
+                {{>site/templates/post-list.html}}
         </section>
 </div>
 
-{{> templates/footer.html}}
+{{>site/templates/footer.html}}

@@ -5,16 +5,16 @@
     <meta name="description" content="The Personal blog and musings of Chris Penner, a designer, developer and future opsimath.">
     <meta name="author" content="Chris Penner">
     <meta name=viewport content="width=device-width, initial-scale=1">
-    {{>templates/meta-data.html}}
+    {{>site/templates/meta-data.html}}
     <title>{{title}}</title>
     <link rel="alternate" type="application/atom+xml" title="Chris Penner FP" href="/atom.xml" />
     <link rel="icon" type="image/png" href="/images/favicon.png">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/syntax.css">
-    {{>templates/head.html}}
+    {{>site/templates/head.html}}
 </head>
 <body>
-    {{> templates/header.html}}
+    {{>site/templates/header.html}}
 
     {{#prevPost}} <a id="leftarrow" class="arrow" href="{{prevPost.url}}">&larr;</a> {{/prevPost}}
     {{#nextPost}} <a id="rightarrow" class="arrow" href="{{nextPost.url}}">&rarr;</a> {{/nextPost}}
@@ -81,4 +81,4 @@
 
 </div>
 
-{{> templates/footer.html}}
+{{>site/templates/footer.html}}

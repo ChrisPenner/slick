@@ -6,40 +6,44 @@
 module Main where
 
 import Data.Aeson as A
-import Data.Foldable
 import Development.Shake hiding (Resource)
+import Development.Shake.FilePath
 import GHC.Generics (Generic)
-import Helpers
+
+-- import Helpers
+import SitePipe.Shake
 
 data Post = Post
-  { name :: String
+  { title :: String
   , author :: String
+  , content :: String
   } deriving (Generic)
 
 instance FromJSON Post
 
-loadPosts :: Action [String]
+instance ToJSON Post
+
+postNames :: Action [FilePath]
+postNames = getDirectoryFiles "." ["site/posts//*.md"]
+
+loadPosts :: Action [Post]
 loadPosts = do
-  postNames <- getDirectoryFiles "." ["assets/site/posts//*.md"]
-  files <- traverse readFile' postNames
-  return files
+  pNames <- postNames
+  files <- traverse readFile' pNames
+  traverse markdownReader files
 
 main :: IO ()
 main =
   shakeArgs shakeOptions $ do
     want ["dist/contents.html"]
-    postOracle <- simpleJsonCache (const loadPosts)
-    -- "site" ~> need ["dist/index.html"]
-    "dist/contents.html" %> \out -> do
-      liftIO $ print "running contents!"
-      posts <- postOracle "posts"
-      liftIO . print $ posts
-      writeFile' out (fold posts)
-    -- "dist/*.html" %> \out -> do
-      -- srcIndex <- readFile' ("stuff" </> (dropDirectory1 out))
-    --
-    --   parts <- getDirectoryFiles "." ["stuff/parts/*.html"]
-    --   partFiles <- traverse readFile' parts
-    --   let resultIndex = srcIndex <> intercalate "\n---\n" partFiles
-    --   writeFile' out resultIndex
-    --   
+    "site" ~>
+  -- postOracle <- simpleJsonCache (const loadPosts)
+     do
+      pNames <- postNames
+      liftIO $ print pNames
+      need ((\p -> "dist" </> dropDirectory1 p -<.> "html") <$> pNames)
+    "dist/posts//*.html" %> \out -> do
+      liftIO $ print out
+      contents <- readFile' ("site" </> dropDirectory1 out -<.> "md")
+      Post {content = f} <- markdownReader contents
+      writeFile' out f

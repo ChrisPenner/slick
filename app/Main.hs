@@ -3,12 +3,18 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Main where
 
 import Control.Lens
 import Data.Aeson as A
 import Data.Aeson.Lens
+import Data.Aeson.Types as A
+import Data.Map as M
+import Data.Set as S
 import qualified Data.Text as T
 import Development.Shake hiding (Resource)
 import Development.Shake.FilePath
@@ -21,7 +27,7 @@ import Text.Mustache.Shake
 
 data IndexInfo = IndexInfo
   { posts :: [Post]
-  , tags :: [String]
+  , tags :: [Value]
   } deriving (Generic)
 
 instance FromJSON IndexInfo
@@ -33,7 +39,8 @@ data Post = Post
   , author :: String
   , content :: String
   , url :: String
-  } deriving (Generic)
+  , tags :: [String]
+  } deriving (Generic, Eq, Ord)
 
 instance FromJSON Post
 
@@ -53,7 +60,8 @@ loadPost postPath = do
   postMeta <- readFile' (destToSrc postPath -<.> "md") >>= markdownReader
   let postURL = T.pack . ("/" ++) . dropDirectory1 . dropExtension $ postPath
       withURL = postMeta & _Object . at "url" ?~ String postURL
-  convert withURL
+      withTags = withURL & _Object . at "tags" ?~ A.emptyArray
+  convert withTags
 
 main :: IO ()
 main =
@@ -70,7 +78,7 @@ main =
       indexT <- compileTemplate' "site/templates/index.html"
       pNames <- postNames
       ps <- forP pNames postCache
-      let indexInfo = IndexInfo {posts = ps, tags = []}
+      let indexInfo = IndexInfo {posts = ps, tags = getTags ps}
           indexF = T.unpack $ substitute indexT (toJSON indexInfo)
       writeFile' out indexF
     "posts" ~> do
@@ -80,3 +88,19 @@ main =
       post <- postCache out
       template <- compileTemplate' "site/templates/post.html"
       writeFile' out . T.unpack $ substitute template (toJSON post)
+
+getTags :: [Post] -> [Value]
+getTags posts =
+  let tagToPostsSet = M.unionsWith mappend (toMap <$> posts)
+      tagToPostsList = fmap S.toList tagToPostsSet
+      tagObjects =
+        foldMapWithKey
+          (\tag ps ->
+             [A.object [("tag", String (T.pack tag)), ("posts", toJSONList ps)]])
+          tagToPostsList
+   in tagObjects
+  where
+    toMap :: Post -> Map String (Set Post)
+    toMap p@Post {tags} = M.unionsWith mappend (embed p <$> tags)
+    embed :: Post -> String -> Map String (Set Post)
+    embed post tag = M.singleton tag (S.singleton post)

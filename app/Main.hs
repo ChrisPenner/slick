@@ -12,12 +12,13 @@ module Main where
 import Control.Lens
 import Data.Aeson as A
 import Data.Aeson.Lens
-import Data.Aeson.Types as A
 import Data.Map as M
+import Data.Monoid
 import Data.Set as S
 import qualified Data.Text as T
 import Data.Text.Lens
 import Development.Shake hiding (Resource)
+import Development.Shake.Classes
 import Development.Shake.FilePath
 import GHC.Generics (Generic)
 
@@ -28,12 +29,22 @@ import Text.Mustache.Shake
 
 data IndexInfo = IndexInfo
   { posts :: [Post]
-  , tags :: [Value]
+  , tags :: [Tag]
   } deriving (Generic, Show)
 
 instance FromJSON IndexInfo
 
 instance ToJSON IndexInfo
+
+data Tag = Tag
+  { tag :: String
+  , posts :: [Post]
+  , url :: String
+  } deriving (Generic, Show)
+
+instance FromJSON Tag
+
+instance ToJSON Tag
 
 data Post = Post
   { title :: String
@@ -68,44 +79,71 @@ loadPost postPath = do
   postMeta <- readFile' (destToSrc postPath -<.> "md") >>= markdownReader
   let postURL = T.pack . ("/" ++) . dropDirectory1 . dropExtension $ postPath
       withURL = postMeta & _Object . at "url" ?~ String postURL
-  p <- convert withURL
-  liftIO $ print p
-  return p
+  convert withURL
+
+newtype TagQuery =
+  TagQuery ()
+  deriving (Show, Eq, Ord, Hashable, Binary, NFData)
+
+loadTags :: (FilePath -> Action Post) -> TagQuery -> Action [Tag]
+loadTags postCache (TagQuery _) = do
+  pNames <- postNames
+  ps <- traverse postCache pNames
+  return $ getTags ps
 
 main :: IO ()
 main =
   shakeArgs shakeOptions $ do
     postCache <- simpleJsonCache loadPost
+    tagsCache <- ($ TagQuery ()) <$> jsonOracle (loadTags postCache)
     "static" ~> do
       staticFiles <-
         getDirectoryFiles "." ["site/css//*", "site/js//*", "site/images//*"]
       need (("dist" </>) . dropDirectory1 <$> staticFiles)
     ["dist/css//*", "dist/js//*", "dist/images//*"] |%> \out -> do
       copyFileChanged ("site" </> dropDirectory1 out) out
-    "site" ~> need ["static", "posts", "dist/index.html"]
+    "site" ~> need ["static", "posts", "tags", "dist/index.html"]
     "dist/index.html" %> \out -> do
       indexT <- compileTemplate' "site/templates/index.html"
       pNames <- postNames
       ps <- forP pNames postCache
-      let indexInfo = IndexInfo {posts = ps, tags = getTags ps}
+      tags <- tagsCache
+      let indexInfo = IndexInfo {posts = ps, tags}
           indexF = T.unpack $ substitute indexT (toJSON indexInfo)
       writeFile' out indexF
     "posts" ~> do
       pNames <- postNames
       need ((\p -> srcToDest p -<.> "html") <$> pNames)
+    "tags" ~> do
+      ts <- tagsCache
+      let toTarget Tag {tag} = "dist/tag/" ++ tag ++ ".html"
+      need (toTarget <$> ts)
+    "dist/tag//*.html" %> \out -> do
+      tagList <- tagsCache
+      let tagName = (dropExtension . dropDirectory1 . dropDirectory1) out
+          findTag t@Tag {tag}
+            | tag == tagName = First (Just t)
+          findTag _ = First Nothing
+          tMaybe = getFirst $ foldMap findTag tagList
+      t <-
+        case tMaybe of
+          Nothing -> fail $ "could not find tag: " <> tagName
+          Just t' -> return t'
+      tagTempl <- compileTemplate' "site/templates/tag.html"
+      liftIO $ print t
+      writeFile' out . T.unpack $ substitute tagTempl (toJSON t)
     "dist/posts//*.html" %> \out -> do
       post <- postCache out
       template <- compileTemplate' "site/templates/post.html"
       writeFile' out . T.unpack $ substitute template (toJSON post)
 
-getTags :: [Post] -> [Value]
+getTags :: [Post] -> [Tag]
 getTags posts =
   let tagToPostsSet = M.unionsWith mappend (toMap <$> posts)
       tagToPostsList = fmap S.toList tagToPostsSet
       tagObjects =
         foldMapWithKey
-          (\tag ps ->
-             [A.object [("tag", String (T.pack tag)), ("posts", toJSONList ps)]])
+          (\tag ps -> [Tag {tag, posts = ps, url = "/tag/" <> tag}])
           tagToPostsList
    in tagObjects
   where

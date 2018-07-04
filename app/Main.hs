@@ -16,6 +16,7 @@ import Data.Aeson.Types as A
 import Data.Map as M
 import Data.Set as S
 import qualified Data.Text as T
+import Data.Text.Lens
 import Development.Shake hiding (Resource)
 import Development.Shake.FilePath
 import GHC.Generics (Generic)
@@ -28,7 +29,7 @@ import Text.Mustache.Shake
 data IndexInfo = IndexInfo
   { posts :: [Post]
   , tags :: [Value]
-  } deriving (Generic)
+  } deriving (Generic, Show)
 
 instance FromJSON IndexInfo
 
@@ -40,9 +41,16 @@ data Post = Post
   , content :: String
   , url :: String
   , tags :: [String]
-  } deriving (Generic, Eq, Ord)
+  } deriving (Generic, Eq, Ord, Show)
 
-instance FromJSON Post
+instance FromJSON Post where
+  parseJSON v =
+    let title = v ^. key "title" . _String . unpacked
+        author = v ^. key "author" . _String . unpacked
+        content = v ^. key "content" . _String . unpacked
+        url = v ^. key "url" . _String . unpacked
+        tags = v ^.. key "tags" . values . _String . unpacked
+     in return Post {..}
 
 instance ToJSON Post
 
@@ -60,8 +68,9 @@ loadPost postPath = do
   postMeta <- readFile' (destToSrc postPath -<.> "md") >>= markdownReader
   let postURL = T.pack . ("/" ++) . dropDirectory1 . dropExtension $ postPath
       withURL = postMeta & _Object . at "url" ?~ String postURL
-      withTags = withURL & _Object . at "tags" ?~ A.emptyArray
-  convert withTags
+  p <- convert withURL
+  liftIO $ print p
+  return p
 
 main :: IO ()
 main =

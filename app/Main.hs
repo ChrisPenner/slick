@@ -18,7 +18,6 @@ import Data.Set as S
 import qualified Data.Text as T
 import Data.Text.Lens
 import Development.Shake hiding (Resource)
-import Development.Shake.Classes
 import Development.Shake.FilePath
 import GHC.Generics (Generic)
 
@@ -26,6 +25,35 @@ import Helpers
 import SitePipe.Shake
 import Text.Mustache hiding ((~>))
 import Text.Mustache.Shake
+
+main :: IO ()
+main =
+  shakeArgs shakeOptions $
+    -- Set up caches
+   do
+    postCache <- simpleJsonCache loadPost
+    let allPosts = postNames >>= traverse postCache
+        allTags = getTags <$> allPosts
+    -- Require all the things we need to build the whole site
+    "site" ~> need ["static", "posts", "tags", "dist/index.html"]
+    -- Require all static assets
+    "static" ~> do
+      staticFiles <-
+        getDirectoryFiles "." ["site/css//*", "site/js//*", "site/images//*"]
+      need (("dist" </>) . dropDirectory1 <$> staticFiles)
+    -- Rule for handling static assets, just copy them from source to dest
+    ["dist/css//*", "dist/js//*", "dist/images//*"] |%> \out -> do
+      copyFileChanged ("site" </> dropDirectory1 out) out
+    -- build the main table of contents
+    "dist/index.html" %> buildIndex allPosts allTags
+     -- Find and require every post to be built
+    "posts" ~> findPosts
+    -- Find and require every tag to be built
+    "tags" ~> findTags allTags
+     -- rule for actually building tags
+    "dist/tag//*.html" %> buildTags allTags
+     -- rule for actually building posts
+    "dist/posts//*.html" %> buildPosts postCache
 
 data IndexInfo = IndexInfo
   { posts :: [Post]
@@ -81,61 +109,46 @@ loadPost postPath = do
       withURL = postMeta & _Object . at "url" ?~ String postURL
   convert withURL
 
-newtype TagQuery =
-  TagQuery ()
-  deriving (Show, Eq, Ord, Hashable, Binary, NFData)
+buildIndex :: Action [Post] -> Action [Tag] -> FilePath -> Action ()
+buildIndex allPosts allTags out = do
+  indexT <- compileTemplate' "site/templates/index.html"
+  posts <- allPosts
+  tags <- allTags
+  let indexInfo = IndexInfo {posts, tags}
+      indexHTML = T.unpack $ substitute indexT (toJSON indexInfo)
+  writeFile' out indexHTML
 
-loadTags :: (FilePath -> Action Post) -> TagQuery -> Action [Tag]
-loadTags postCache (TagQuery _) = do
+findPosts :: Action ()
+findPosts = do
   pNames <- postNames
-  ps <- traverse postCache pNames
-  return $ getTags ps
+  need ((\p -> srcToDest p -<.> "html") <$> pNames)
 
-main :: IO ()
-main =
-  shakeArgs shakeOptions $ do
-    postCache <- simpleJsonCache loadPost
-    tagsCache <- ($ TagQuery ()) <$> jsonOracle (loadTags postCache)
-    "static" ~> do
-      staticFiles <-
-        getDirectoryFiles "." ["site/css//*", "site/js//*", "site/images//*"]
-      need (("dist" </>) . dropDirectory1 <$> staticFiles)
-    ["dist/css//*", "dist/js//*", "dist/images//*"] |%> \out -> do
-      copyFileChanged ("site" </> dropDirectory1 out) out
-    "site" ~> need ["static", "posts", "tags", "dist/index.html"]
-    "dist/index.html" %> \out -> do
-      indexT <- compileTemplate' "site/templates/index.html"
-      pNames <- postNames
-      ps <- forP pNames postCache
-      tags <- tagsCache
-      let indexInfo = IndexInfo {posts = ps, tags}
-          indexF = T.unpack $ substitute indexT (toJSON indexInfo)
-      writeFile' out indexF
-    "posts" ~> do
-      pNames <- postNames
-      need ((\p -> srcToDest p -<.> "html") <$> pNames)
-    "tags" ~> do
-      ts <- tagsCache
-      let toTarget Tag {tag} = "dist/tag/" ++ tag ++ ".html"
-      need (toTarget <$> ts)
-    "dist/tag//*.html" %> \out -> do
-      tagList <- tagsCache
-      let tagName = (dropExtension . dropDirectory1 . dropDirectory1) out
-          findTag t@Tag {tag}
-            | tag == tagName = First (Just t)
-          findTag _ = First Nothing
-          tMaybe = getFirst $ foldMap findTag tagList
-      t <-
-        case tMaybe of
-          Nothing -> fail $ "could not find tag: " <> tagName
-          Just t' -> return t'
-      tagTempl <- compileTemplate' "site/templates/tag.html"
-      liftIO $ print t
-      writeFile' out . T.unpack $ substitute tagTempl (toJSON t)
-    "dist/posts//*.html" %> \out -> do
-      post <- postCache out
-      template <- compileTemplate' "site/templates/post.html"
-      writeFile' out . T.unpack $ substitute template (toJSON post)
+findTags :: Action [Tag] -> Action ()
+findTags allTags = do
+  ts <- allTags
+  let toTarget Tag {tag} = "dist/tag/" ++ tag ++ ".html"
+  need (toTarget <$> ts)
+
+buildTags :: Action [Tag] -> FilePath -> Action ()
+buildTags allTags out = do
+  tagList <- allTags
+  let tagName = (dropExtension . dropDirectory1 . dropDirectory1) out
+      findTag t@Tag {tag}
+        | tag == tagName = First (Just t)
+      findTag _ = First Nothing
+      tMaybe = getFirst $ foldMap findTag tagList
+  t <-
+    case tMaybe of
+      Nothing -> fail $ "could not find tag: " <> tagName
+      Just t' -> return t'
+  tagTempl <- compileTemplate' "site/templates/tag.html"
+  writeFile' out . T.unpack $ substitute tagTempl (toJSON t)
+
+buildPosts :: (String -> Action Post) -> FilePath -> Action ()
+buildPosts postCache out = do
+  post <- postCache out
+  template <- compileTemplate' "site/templates/post.html"
+  writeFile' out . T.unpack $ substitute template (toJSON post)
 
 getTags :: [Post] -> [Tag]
 getTags posts =

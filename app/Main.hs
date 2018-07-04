@@ -51,9 +51,9 @@ main =
     -- Find and require every tag to be built
     "tags" ~> findTags allTags
      -- rule for actually building tags
-    "dist/tag//*.html" %> buildTags allTags
+    "dist/tag//*.html" %> buildTag allTags
      -- rule for actually building posts
-    "dist/posts//*.html" %> buildPosts postCache
+    "dist/posts//*.html" %> buildPost postCache
 
 data IndexInfo = IndexInfo
   { posts :: [Post]
@@ -104,9 +104,9 @@ srcToDest p = "dist" </> dropDirectory1 p
 
 loadPost :: FilePath -> Action Post
 loadPost postPath = do
-  postMeta <- readFile' (destToSrc postPath -<.> "md") >>= markdownReader
+  postData <- readFile' (destToSrc postPath -<.> "md") >>= markdownReader
   let postURL = T.pack . ("/" ++) . dropDirectory1 . dropExtension $ postPath
-      withURL = postMeta & _Object . at "url" ?~ String postURL
+      withURL = postData & _Object . at "url" ?~ String postURL
   convert withURL
 
 buildIndex :: Action [Post] -> Action [Tag] -> FilePath -> Action ()
@@ -129,23 +129,23 @@ findTags allTags = do
   let toTarget Tag {tag} = "dist/tag/" ++ tag ++ ".html"
   need (toTarget <$> ts)
 
-buildTags :: Action [Tag] -> FilePath -> Action ()
-buildTags allTags out = do
+buildTag :: Action [Tag] -> FilePath -> Action ()
+buildTag allTags out = do
   tagList <- allTags
   let tagName = (dropExtension . dropDirectory1 . dropDirectory1) out
       findTag t@Tag {tag}
         | tag == tagName = First (Just t)
       findTag _ = First Nothing
-      tMaybe = getFirst $ foldMap findTag tagList
+      maybeTag = getFirst $ foldMap findTag tagList
   t <-
-    case tMaybe of
+    case maybeTag of
       Nothing -> fail $ "could not find tag: " <> tagName
       Just t' -> return t'
   tagTempl <- compileTemplate' "site/templates/tag.html"
   writeFile' out . T.unpack $ substitute tagTempl (toJSON t)
 
-buildPosts :: (String -> Action Post) -> FilePath -> Action ()
-buildPosts postCache out = do
+buildPost :: (String -> Action Post) -> FilePath -> Action ()
+buildPost postCache out = do
   post <- postCache out
   template <- compileTemplate' "site/templates/post.html"
   writeFile' out . T.unpack $ substitute template (toJSON post)

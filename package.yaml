@@ -32,6 +32,7 @@ dependencies:
 - bytestring
 - containers
 - mustache
+- time
 
 library:
   source-dirs: src

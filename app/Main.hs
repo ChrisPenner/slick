@@ -12,11 +12,14 @@ module Main where
 import Control.Lens
 import Data.Aeson as A
 import Data.Aeson.Lens
+import Data.Function (on)
+import Data.List (sortBy)
 import Data.Map as M
 import Data.Monoid
 import Data.Set as S
 import qualified Data.Text as T
 import Data.Text.Lens
+import Data.Time
 import Development.Shake hiding (Resource)
 import Development.Shake.FilePath
 import GHC.Generics (Generic)
@@ -32,7 +35,7 @@ main =
     -- Set up caches
    do
     postCache <- simpleJsonCache loadPost
-    let allPosts = postNames >>= traverse postCache
+    let allPosts = getSortedPosts <$> (postNames >>= traverse postCache)
         allTags = getTags <$> allPosts
     -- Require all the things we need to build the whole site
     "site" ~> need ["static", "posts", "tags", "dist/index.html"]
@@ -80,15 +83,23 @@ data Post = Post
   , content :: String
   , url :: String
   , tags :: [String]
+  , nextPost :: Maybe Post
+  , prevPost :: Maybe Post
+  , isoDate :: String
+  , date :: String
   } deriving (Generic, Eq, Ord, Show)
 
 instance FromJSON Post where
-  parseJSON v =
+  parseJSON v = do
     let title = v ^. key "title" . _String . unpacked
         author = v ^. key "author" . _String . unpacked
+        date = v ^. key "date" . _String . unpacked
+        isoDate = formatDate date
         content = v ^. key "content" . _String . unpacked
         url = v ^. key "url" . _String . unpacked
         tags = v ^.. key "tags" . values . _String . unpacked
+        nextPost = Nothing
+        prevPost = Nothing
      in return Post {..}
 
 instance ToJSON Post
@@ -164,3 +175,33 @@ getTags posts =
     toMap p@Post {tags} = M.unionsWith mappend (embed p <$> tags)
     embed :: Post -> String -> Map String (Set Post)
     embed post tag = M.singleton tag (S.singleton post)
+
+addPostNeighbours :: [Post] -> [Post]
+addPostNeighbours posts =
+  zipWith3 addNeighbours (Nothing : mPosts) posts (tail mPosts ++ [Nothing])
+  where
+    mPosts :: [Maybe Post]
+    mPosts = pure <$> posts
+    addNeighbours :: Maybe Post -> Post -> Maybe Post -> Post
+    addNeighbours mPrevPost post mNextPost =
+      post {prevPost = mPrevPost, nextPost = mNextPost}
+
+getSortedPosts :: [Post] -> [Post]
+getSortedPosts = addPostNeighbours . sortByDate
+
+sortByDate :: [Post] -> [Post]
+sortByDate = sortBy (flip compareDates)
+  where
+    compareDates = compare `on` isoDate
+
+formatDate :: String -> String
+formatDate humanDate = toIsoDate parsedTime
+  where
+    parsedTime =
+      parseTimeOrError True defaultTimeLocale "%b %e, %Y" humanDate :: UTCTime
+
+rfc3339 :: Maybe String
+rfc3339 = Just "%H:%M:%SZ"
+
+toIsoDate :: UTCTime -> String
+toIsoDate = formatTime defaultTimeLocale (iso8601DateFormat rfc3339)

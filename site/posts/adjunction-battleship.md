@@ -541,3 +541,5 @@ Most of the functions we've written are a bit contrived. Sometimes the
 adjunction-based approach was a bit clunkier than just writing a simple
 function to do what you needed on a Board, but I hope this provides some form
 of intuition for adjunctions. Good luck!
+
+

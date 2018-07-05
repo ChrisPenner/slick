@@ -2,6 +2,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Helpers where
 
@@ -15,11 +16,11 @@ newtype CacheQuery q =
   CacheQuery q
   deriving (Show, Eq, Generic, Binary, NFData, Hashable)
 
-jsonOracle ::
+jsonCache ::
      forall a q. (ToJSON a, FromJSON a, ShakeValue q)
   => (q -> Action a)
   -> Rules (q -> Action a)
-jsonOracle loader =
+jsonCache loader =
   unpackJSON <$> addOracleCache (\(CacheQuery q) -> A.encode <$> loader q)
   where
     unpackJSON ::
@@ -37,4 +38,15 @@ simpleJsonCache ::
      (ToJSON a, FromJSON a)
   => (String -> Action a)
   -> Rules (String -> Action a)
-simpleJsonCache = jsonOracle
+simpleJsonCache = jsonCache
+-- taggedCache ::
+--      forall q a. (ToJSON a, FromJSON a, Typeable q)
+--   => q
+--   -> Action a
+--   -> Rules (Action a)
+-- taggedCache q act =
+--   ($ (ProxyWrap Proxy :: ProxyWrap q)) <$>
+--   jsonCache (const act :: ProxyWrap q -> Action a)
+-- newtype ProxyWrap q =
+--   ProxyWrap (Proxy q)
+--   deriving (Show, Eq)

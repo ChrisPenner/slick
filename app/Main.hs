@@ -1,7 +1,5 @@
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -32,14 +30,14 @@ import Text.Mustache.Shake
 
 main :: IO ()
 main =
-  shakeArgs shakeOptions $
+  shakeArgs shakeOptions {shakeVerbosity = Chatty} $
     -- Set up caches
    do
-    postCache <- (. PostFilePath) <$> jsonCache loadPost
+    postCache <- jsonCache loadPost
     allPostsCache <-
       unaryJsonCache
         (SortedPostsCache ())
-        (sortByDate <$> (postNames >>= traverse postCache))
+        (sortByDate <$> (postNames >>= traverse (postCache . PostFilePath)))
     sortedPostURLsCache <-
       unaryJsonCache
         (SortedPostURLsCache ())
@@ -170,12 +168,13 @@ buildTag allTags out = do
   tagTempl <- compileTemplate' "site/templates/tag.html"
   writeFile' out . T.unpack $ substitute tagTempl (toJSON t)
 
-buildPost :: (String -> Action Post) -> Action [String] -> FilePath -> Action ()
+buildPost ::
+     (PostFilePath -> Action Post) -> Action [String] -> FilePath -> Action ()
 buildPost postCache sortedPostURLsCache out = do
   let srcPath = destToSrc out -<.> "md"
       postURL = srcToURL srcPath
   (prevPostURL, nextPostURL) <- getNeighbours postURL <$> sortedPostURLsCache
-  post <- postCache out
+  post <- postCache (PostFilePath srcPath)
   let withNeighbours = post {nextPostURL, prevPostURL}
   template <- compileTemplate' "site/templates/post.html"
   writeFile' out . T.unpack $ substitute template (toJSON withNeighbours)
@@ -205,17 +204,6 @@ getTags posts =
     embed :: Post -> String -> Map String (Set Post)
     embed post tag = M.singleton tag (S.singleton post)
 
--- addPostNeighbours :: [Post] -> [Post]
--- addPostNeighbours posts =
---   zipWith3 addNeighbours (Nothing : mPosts) posts ((tail mPosts) ++ [Nothing])
---   where
---     mPosts :: [Maybe Post]
---     mPosts = pure <$> posts
--- addNeighbours :: Maybe Post -> Post -> Maybe Post -> Post
--- addNeighbours mPrevPost post mNextPost =
---   post {prevPostURL = mPrevPost, nextPostURL = mNextPost}
--- getSortedPosts :: [Post] -> [Post]
--- getSortedPosts = addPostNeighbours . sortByDate
 sortByDate :: [Post] -> [Post]
 sortByDate = sortBy (flip compareDates)
   where

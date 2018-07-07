@@ -4,7 +4,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Helpers where
+module SitePipe.Shake.Caching
+  ( simpleJsonCache
+  , jsonCache
+  ) where
 
 import Data.Aeson as A
 import Data.ByteString.Lazy
@@ -32,22 +35,21 @@ jsonCache loader =
           Left err -> fail err
           Right res -> pure res
 
-unaryJsonCache ::
+simpleJsonCache ::
      forall q a. (ToJSON a, FromJSON a, ShakeValue q)
   => q
   -> Action a
   -> Rules (Action a)
-unaryJsonCache q loader = do
+simpleJsonCache q loader = do
   cacheGetter <- jsonCache (const loader)
   return $ cacheGetter q
 
 type instance RuleResult (CacheQuery q) = ByteString
-
-simpleJsonCache ::
-     (ToJSON a, FromJSON a)
-  => (String -> Action a)
-  -> Rules (String -> Action a)
-simpleJsonCache = jsonCache
+-- simpleJsonCache ::
+     -- (ToJSON a, FromJSON a)
+  -- => (String -> Action a)
+  -- -> Rules (String -> Action a)
+-- simpleJsonCache = jsonCache
 -- taggedCache ::
 --      forall q a. (ToJSON a, FromJSON a, Typeable q)
 --   => q

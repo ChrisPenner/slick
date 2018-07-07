@@ -35,7 +35,6 @@ resolver: lts-11.15
 #  - wai
 packages:
 - .
-- ../mustache-shake
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)

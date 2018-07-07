@@ -22,7 +22,6 @@ description:         Please see the README on GitHub at <https://github.com/Chri
 dependencies:
 - base >= 4.7 && < 5
 - shake
-- mustache-shake
 - aeson
 - lens-aeson
 - lens

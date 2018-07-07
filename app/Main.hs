@@ -22,11 +22,7 @@ import Development.Shake hiding (Resource)
 import Development.Shake.Classes
 import Development.Shake.FilePath
 import GHC.Generics (Generic)
-
-import Helpers
 import SitePipe.Shake
-import Text.Mustache hiding ((~>))
-import Text.Mustache.Shake
 
 main :: IO ()
 main =
@@ -35,14 +31,14 @@ main =
    do
     postCache <- jsonCache loadPost
     allPostsCache <-
-      unaryJsonCache
+      simpleJsonCache
         (SortedPostsCache ())
         (sortByDate <$> (postNames >>= traverse (postCache . PostFilePath)))
     sortedPostURLsCache <-
-      unaryJsonCache
+      simpleJsonCache
         (SortedPostURLsCache ())
         (fmap (url :: Post -> String) <$> allPostsCache)
-    allTagsCache <- unaryJsonCache (TagCache ()) (getTags <$> allPostsCache)
+    allTagsCache <- simpleJsonCache (TagCache ()) (getTags <$> allPostsCache)
     -- Require all the things we need to build the whole site
     "site" ~> need ["static", "posts", "tags", "dist/index.html"]
     -- Require all static assets
@@ -127,7 +123,7 @@ srcToURL = ("/" ++) . dropDirectory1 . dropExtension
 loadPost :: PostFilePath -> Action Post
 loadPost (PostFilePath postPath) = do
   let srcPath = destToSrc postPath -<.> "md"
-  postData <- readFile' srcPath >>= markdownReader
+  postData <- readFile' srcPath >>= markdownToHTML . T.pack
   let postURL = T.pack . srcToURL $ postPath
       withURL = _Object . at "url" ?~ String postURL
       withSrc = _Object . at "srcPath" ?~ String (T.pack srcPath)

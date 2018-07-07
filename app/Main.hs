@@ -21,6 +21,7 @@ import qualified Data.Text as T
 import Data.Text.Lens
 import Data.Time
 import Development.Shake hiding (Resource)
+import Development.Shake.Classes
 import Development.Shake.FilePath
 import GHC.Generics (Generic)
 
@@ -34,9 +35,16 @@ main =
   shakeArgs shakeOptions $
     -- Set up caches
    do
-    postCache <- simpleJsonCache loadPost
-    let allPosts = getSortedPosts <$> (postNames >>= traverse postCache)
-        allTags = getTags <$> allPosts
+    postCache <- (. PostFilePath) <$> jsonCache loadPost
+    allPostsCache <-
+      unaryJsonCache
+        (SortedPostsCache ())
+        (sortByDate <$> (postNames >>= traverse postCache))
+    sortedPostURLsCache <-
+      unaryJsonCache
+        (SortedPostURLsCache ())
+        (fmap (url :: Post -> String) <$> allPostsCache)
+    allTagsCache <- unaryJsonCache (TagCache ()) (getTags <$> allPostsCache)
     -- Require all the things we need to build the whole site
     "site" ~> need ["static", "posts", "tags", "dist/index.html"]
     -- Require all static assets
@@ -48,15 +56,15 @@ main =
     ["dist/css//*", "dist/js//*", "dist/images//*"] |%> \out -> do
       copyFileChanged ("site" </> dropDirectory1 out) out
     -- build the main table of contents
-    "dist/index.html" %> buildIndex allPosts allTags
+    "dist/index.html" %> buildIndex allPostsCache allTagsCache
      -- Find and require every post to be built
     "posts" ~> findPosts
     -- Find and require every tag to be built
-    "tags" ~> findTags allTags
+    "tags" ~> findTags allTagsCache
      -- rule for actually building tags
-    "dist/tag//*.html" %> buildTag allTags
+    "dist/tag//*.html" %> buildTag allTagsCache
      -- rule for actually building posts
-    "dist/posts//*.html" %> buildPost postCache
+    "dist/posts//*.html" %> buildPost postCache sortedPostURLsCache
 
 data IndexInfo = IndexInfo
   { posts :: [Post]
@@ -83,10 +91,11 @@ data Post = Post
   , content :: String
   , url :: String
   , tags :: [String]
-  , nextPost :: Maybe Post
-  , prevPost :: Maybe Post
+  , nextPostURL :: Maybe String
+  , prevPostURL :: Maybe String
   , isoDate :: String
   , date :: String
+  , srcPath :: String
   } deriving (Generic, Eq, Ord, Show)
 
 instance FromJSON Post where
@@ -98,8 +107,9 @@ instance FromJSON Post where
         content = v ^. key "content" . _String . unpacked
         url = v ^. key "url" . _String . unpacked
         tags = v ^.. key "tags" . values . _String . unpacked
-        nextPost = Nothing
-        prevPost = Nothing
+        nextPostURL = Nothing
+        prevPostURL = Nothing
+        srcPath = v ^. key "srcPath" . _String . unpacked
      in return Post {..}
 
 instance ToJSON Post
@@ -113,12 +123,17 @@ destToSrc p = "site" </> dropDirectory1 p
 srcToDest :: FilePath -> FilePath
 srcToDest p = "dist" </> dropDirectory1 p
 
-loadPost :: FilePath -> Action Post
-loadPost postPath = do
-  postData <- readFile' (destToSrc postPath -<.> "md") >>= markdownReader
-  let postURL = T.pack . ("/" ++) . dropDirectory1 . dropExtension $ postPath
-      withURL = postData & _Object . at "url" ?~ String postURL
-  convert withURL
+srcToURL :: FilePath -> String
+srcToURL = ("/" ++) . dropDirectory1 . dropExtension
+
+loadPost :: PostFilePath -> Action Post
+loadPost (PostFilePath postPath) = do
+  let srcPath = destToSrc postPath -<.> "md"
+  postData <- readFile' srcPath >>= markdownReader
+  let postURL = T.pack . srcToURL $ postPath
+      withURL = _Object . at "url" ?~ String postURL
+      withSrc = _Object . at "srcPath" ?~ String (T.pack srcPath)
+  convert . withSrc . withURL $ postData
 
 buildIndex :: Action [Post] -> Action [Tag] -> FilePath -> Action ()
 buildIndex allPosts allTags out = do
@@ -155,11 +170,25 @@ buildTag allTags out = do
   tagTempl <- compileTemplate' "site/templates/tag.html"
   writeFile' out . T.unpack $ substitute tagTempl (toJSON t)
 
-buildPost :: (String -> Action Post) -> FilePath -> Action ()
-buildPost postCache out = do
+buildPost :: (String -> Action Post) -> Action [String] -> FilePath -> Action ()
+buildPost postCache sortedPostURLsCache out = do
+  let srcPath = destToSrc out -<.> "md"
+      postURL = srcToURL srcPath
+  (prevPostURL, nextPostURL) <- getNeighbours postURL <$> sortedPostURLsCache
   post <- postCache out
+  let withNeighbours = post {nextPostURL, prevPostURL}
   template <- compileTemplate' "site/templates/post.html"
-  writeFile' out . T.unpack $ substitute template (toJSON post)
+  writeFile' out . T.unpack $ substitute template (toJSON withNeighbours)
+
+getNeighbours :: String -> [String] -> (Maybe String, Maybe String)
+getNeighbours i xs =
+  let ms = pure <$> xs
+   in go ([Nothing] <> ms <> [Nothing])
+  where
+    go (before:Just current:after:_)
+      | current == i = (before, after)
+    go (_:rest) = go rest
+    go [] = (Nothing, Nothing)
 
 getTags :: [Post] -> [Tag]
 getTags posts =
@@ -176,19 +205,17 @@ getTags posts =
     embed :: Post -> String -> Map String (Set Post)
     embed post tag = M.singleton tag (S.singleton post)
 
-addPostNeighbours :: [Post] -> [Post]
-addPostNeighbours posts =
-  zipWith3 addNeighbours (Nothing : mPosts) posts (tail mPosts ++ [Nothing])
-  where
-    mPosts :: [Maybe Post]
-    mPosts = pure <$> posts
-    addNeighbours :: Maybe Post -> Post -> Maybe Post -> Post
-    addNeighbours mPrevPost post mNextPost =
-      post {prevPost = mPrevPost, nextPost = mNextPost}
-
-getSortedPosts :: [Post] -> [Post]
-getSortedPosts = addPostNeighbours . sortByDate
-
+-- addPostNeighbours :: [Post] -> [Post]
+-- addPostNeighbours posts =
+--   zipWith3 addNeighbours (Nothing : mPosts) posts ((tail mPosts) ++ [Nothing])
+--   where
+--     mPosts :: [Maybe Post]
+--     mPosts = pure <$> posts
+-- addNeighbours :: Maybe Post -> Post -> Maybe Post -> Post
+-- addNeighbours mPrevPost post mNextPost =
+--   post {prevPostURL = mPrevPost, nextPostURL = mNextPost}
+-- getSortedPosts :: [Post] -> [Post]
+-- getSortedPosts = addPostNeighbours . sortByDate
 sortByDate :: [Post] -> [Post]
 sortByDate = sortBy (flip compareDates)
   where
@@ -205,3 +232,19 @@ rfc3339 = Just "%H:%M:%SZ"
 
 toIsoDate :: UTCTime -> String
 toIsoDate = formatTime defaultTimeLocale (iso8601DateFormat rfc3339)
+
+newtype SortedPostsCache =
+  SortedPostsCache ()
+  deriving (Show, Eq, Hashable, Binary, NFData)
+
+newtype SortedPostURLsCache =
+  SortedPostURLsCache ()
+  deriving (Show, Eq, Hashable, Binary, NFData)
+
+newtype TagCache =
+  TagCache ()
+  deriving (Show, Eq, Hashable, Binary, NFData)
+
+newtype PostFilePath =
+  PostFilePath String
+  deriving (Show, Eq, Hashable, Binary, NFData)

@@ -32,6 +32,15 @@ jsonCache loader =
           Left err -> fail err
           Right res -> pure res
 
+unaryJsonCache ::
+     forall q a. (ToJSON a, FromJSON a, ShakeValue q)
+  => q
+  -> Action a
+  -> Rules (Action a)
+unaryJsonCache q loader = do
+  cacheGetter <- jsonCache (const loader)
+  return $ cacheGetter q
+
 type instance RuleResult (CacheQuery q) = ByteString
 
 simpleJsonCache ::

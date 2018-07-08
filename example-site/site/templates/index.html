@@ -6,10 +6,8 @@
     <meta name="author" content="Chris Penner">
     <meta name=viewport content="width=device-width, initial-scale=1">
     <title>Chris Penner's FP</title>
-    <link rel="alternative" type="application/rss+xml" title="Chris Penner RSS Feed" href="/atom.xml" />
     <link rel="icon" type="image/png" href="/images/favicon.png">
     <link rel="stylesheet" href="/css/style.css">
-    {{>site/templates/head.html}}
 </head>
 <body>
     {{>site/templates/header.html}}
@@ -17,13 +15,6 @@
             <section class="table-of-contents">
                 <h1>All Posts</h1>
                 <div class="metadata">
-                    <br>
-                    <span class="tags">
-                        Tags<br>
-                        {{#tags}}
-                            <a class="tag" href="{{url}}">{{tag}}</a>
-                        {{/tags}}
-                    </span>
                 </div>
                 {{>site/templates/post-list.html}}
         </section>

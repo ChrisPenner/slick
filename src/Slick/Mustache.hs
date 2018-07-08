@@ -1,4 +1,4 @@
-module SitePipe.Shake.Mustache
+module Slick.Mustache
   ( compileTemplate'
   ) where
 

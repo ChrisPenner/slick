@@ -1,0 +1,74 @@
+-- This file has been generated from package.yaml by hpack version 0.28.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: dc5df4fc0324f77bdfe61afb25a8a9c15a6d83dd8ca550837de78247854108dc
+
+name:           slick
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
+homepage:       https://github.com/ChrisPenner/slick#readme
+bug-reports:    https://github.com/ChrisPenner/slick/issues
+author:         Chris Penner
+maintainer:     example@example.com
+copyright:      2018 Chris Penner
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+extra-source-files:
+    ChangeLog.md
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/ChrisPenner/slick
+
+library
+  exposed-modules:
+      Slick
+      Slick.Caching
+      Slick.Mustache
+      Slick.Pandoc
+  other-modules:
+      Paths_slick
+  hs-source-dirs:
+      src
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , binary
+    , bytestring
+    , containers
+    , lens
+    , lens-aeson
+    , mustache
+    , pandoc
+    , shake
+    , text
+    , time
+  default-language: Haskell2010
+
+test-suite slick-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_slick
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , binary
+    , bytestring
+    , containers
+    , lens
+    , lens-aeson
+    , mustache
+    , pandoc
+    , shake
+    , slick
+    , text
+    , time
+  default-language: Haskell2010

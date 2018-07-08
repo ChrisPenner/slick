@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module SitePipe.Shake.Pandoc
+module Slick.Pandoc
   ( markdownToHTML
   , markdownToHTML'
   , convert

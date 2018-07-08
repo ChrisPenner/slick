@@ -4,7 +4,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 
-module SitePipe.Shake.Caching
+module Slick.Caching
   ( simpleJsonCache
   , jsonCache
   ) where

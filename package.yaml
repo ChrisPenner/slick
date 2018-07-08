@@ -1,6 +1,6 @@
-name:                sitepipe-shake
+name:                slick
 version:             0.1.0.0
-github:              "ChrisPenner/sitepipe-shake"
+github:              "ChrisPenner/slick"
 license:             BSD3
 author:              "Chris Penner"
 maintainer:          "example@example.com"
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/ChrisPenner/sitepipe-shake#readme>
+description:         Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -37,7 +37,7 @@ library:
   source-dirs: src
 
 tests:
-  sitepipe-shake-test:
+  slick-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -45,4 +45,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - sitepipe-shake
+    - slick

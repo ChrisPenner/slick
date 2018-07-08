@@ -29,7 +29,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - shake
-    - sitepipe-shake
+    - slick
     - base >= 4.7 && < 5
     - aeson
     - lens-aeson

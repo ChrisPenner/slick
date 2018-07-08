@@ -22,7 +22,7 @@ import Development.Shake hiding (Resource)
 import Development.Shake.Classes
 import Development.Shake.FilePath
 import GHC.Generics (Generic)
-import SitePipe.Shake
+import Slick
 
 main :: IO ()
 main =

@@ -45,19 +45,3 @@ simpleJsonCache q loader = do
   return $ cacheGetter q
 
 type instance RuleResult (CacheQuery q) = ByteString
--- simpleJsonCache ::
-     -- (ToJSON a, FromJSON a)
-  -- => (String -> Action a)
-  -- -> Rules (String -> Action a)
--- simpleJsonCache = jsonCache
--- taggedCache ::
---      forall q a. (ToJSON a, FromJSON a, Typeable q)
---   => q
---   -> Action a
---   -> Rules (Action a)
--- taggedCache q act =
---   ($ (ProxyWrap Proxy :: ProxyWrap q)) <$>
---   jsonCache (const act :: ProxyWrap q -> Action a)
--- newtype ProxyWrap q =
---   ProxyWrap (Proxy q)
---   deriving (Show, Eq)

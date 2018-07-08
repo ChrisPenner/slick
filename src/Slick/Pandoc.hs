@@ -4,6 +4,10 @@
 module Slick.Pandoc
   ( markdownToHTML
   , markdownToHTML'
+  , makePandocReader
+  , makePandocReader'
+  , loadUsing
+  , loadUsing'
   , convert
   ) where
 

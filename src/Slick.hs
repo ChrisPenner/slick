@@ -1,8 +1,26 @@
 module Slick
-  ( module Slick.Caching
-  , module Slick.Mustache
-  , module Slick.Pandoc
+  (
+  -- * Slick
+  -- | This module re-exports everything you need to use Slick
+
+  -- ** Mustache
+    compileTemplate'
   , module Text.Mustache
+
+  -- ** Pandoc
+  , markdownToHTML
+  , markdownToHTML'
+  , makePandocReader
+  , makePandocReader'
+  , loadUsing
+  , loadUsing'
+
+  -- ** Aeson
+  , convert
+
+  -- ** Shake
+  , simpleJsonCache
+  , jsonCache
   ) where
 
 import Slick.Caching

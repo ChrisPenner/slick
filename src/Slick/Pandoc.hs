@@ -21,6 +21,7 @@ import Text.Pandoc
 import Text.Pandoc.Highlighting
 import Text.Pandoc.Shared
 
+-- | Reasonable options for reading a markdown file
 markdownOptions :: ReaderOptions
 markdownOptions = def {readerExtensions = exts}
   where
@@ -28,16 +29,22 @@ markdownOptions = def {readerExtensions = exts}
       mconcat
         [extensionsFromList [Ext_yaml_metadata_block], githubMarkdownExtensions]
 
+-- | Reasonable options for rendering to HTML
 html5Options :: WriterOptions
 html5Options = def {writerHighlightStyle = Just tango}
 
+-- | Handle possible pandoc failure within the Action Monad
 unPandocM :: PandocPure a -> Action a
 unPandocM = either (fail . show) return . runPure
 
+-- | Convert markdown text into a 'Value';
+-- The 'Value'  has a "content" key containing rendered HTML
+-- Metadata is assigned on the respective keys in the 'Value'
 markdownToHTML :: T.Text -> Action Value
 markdownToHTML =
   loadUsing (readMarkdown markdownOptions) (writeHtml5String html5Options)
 
+-- | 
 markdownToHTML' :: (FromJSON a) => T.Text -> Action a
 markdownToHTML' = markdownToHTML >=> convert
 

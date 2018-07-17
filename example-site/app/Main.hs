@@ -37,11 +37,11 @@ main =
       staticFiles <-
         getDirectoryFiles "." ["site/css//*", "site/js//*", "site/images//*"]
       need (("dist" </>) . dropDirectory1 <$> staticFiles)
-     -- Find and require every post to be built
-    "posts" ~> findPosts
     -- Rule for handling static assets, just copy them from source to dest
     ["dist/css//*", "dist/js//*", "dist/images//*"] |%> \out -> do
       copyFileChanged ("site" </> dropDirectory1 out) out
+     -- Find and require every post to be built
+    "posts" ~> requirePosts
     -- build the main table of contents
     "dist/index.html" %> buildIndex postCache
      -- rule for actually building posts
@@ -97,8 +97,8 @@ buildIndex postCache out = do
       indexHTML = T.unpack $ substitute indexT (toJSON indexInfo)
   writeFile' out indexHTML
 
-findPosts :: Action ()
-findPosts = do
+requirePosts :: Action ()
+requirePosts = do
   pNames <- postNames
   need ((\p -> srcToDest p -<.> "html") <$> pNames)
 
@@ -109,11 +109,6 @@ buildPost postCache out = do
   post <- postCache (PostFilePath srcPath)
   template <- compileTemplate' "site/templates/post.html"
   writeFile' out . T.unpack $ substitute template (toJSON post)
-
-sortByDate :: [Post] -> [Post]
-sortByDate = sortBy (flip compareDates)
-  where
-    compareDates = compare `on` date
 
 newtype PostFilePath =
   PostFilePath String

@@ -11,104 +11,7 @@ static-site builds, but figuring out how to get started can be a bit abstract. S
 'how do I get a site building?' while giving you the necessary tools and examples to figure out how to accomplish your
 goals.
 
-
-# Example Site:
-
-```haskell
-main :: IO ()
-main =
-  shakeArgs shakeOptions $ do
-    -- Require all the things we need to build the whole site
-    "site" ~> need ["static", "posts", "build/index.html"]
-    -- Require all static assets
-    "static" ~> do
-      staticFiles <-
-        getDirectoryFiles "." ["site/css//*", "site/js//*", "site/images//*"]
-      -- 
-      need (("build" </>) . dropDirectory1 <$> staticFiles)
-     -- Find and require every post to be built
-    "posts" ~> findPosts
-    -- Rule for handling static assets, just copy them from source to dest
-    ["build/css//*", "build/js//*", "build/images//*"] |%> \out -> do
-      copyFileChanged ("site" </> dropDirectory1 out) out
-    -- build the main table of contents
-    "build/index.html" %> buildIndex postCache
-     -- rule for actually building posts
-    "build/posts//*.html" %> buildPost postCache
-
-data IndexInfo = IndexInfo
-  { posts :: [Post]
-  } deriving (Generic, Show)
-
-instance FromJSON IndexInfo
-
-instance ToJSON IndexInfo
-
-data Post = Post
-  { title :: String
-  , author :: String
-  , content :: String
-  , url :: String
-  , date :: String
-  , image :: Maybe String
-  } deriving (Generic, Eq, Ord, Show)
-
-instance FromJSON Post
-
-instance ToJSON Post
-
-postNames :: Action [FilePath]
-postNames = getDirectoryFiles "." ["site/posts//*.md"]
-
-destToSrc :: FilePath -> FilePath
-destToSrc p = "site" </> dropDirectory1 p
-
-srcToDest :: FilePath -> FilePath
-srcToDest p = "build" </> dropDirectory1 p
-
-srcToURL :: FilePath -> String
-srcToURL = ("/" ++) . dropDirectory1 . (-<.> ".html")
-
-loadPost :: PostFilePath -> Action Post
-loadPost (PostFilePath postPath) = do
-  let srcPath = destToSrc postPath -<.> "md"
-  postData <- readFile' srcPath >>= markdownToHTML . T.pack
-  let postURL = T.pack . srcToURL $ postPath
-      withURL = _Object . at "url" ?~ String postURL
-      withSrc = _Object . at "srcPath" ?~ String (T.pack srcPath)
-  convert . withSrc . withURL $ postData
-
-buildIndex :: (PostFilePath -> Action Post) -> FilePath -> Action ()
-buildIndex postCache out = do
-  posts <- postNames >>= traverse (postCache . PostFilePath)
-  indexT <- compileTemplate' "site/templates/index.html"
-  let indexInfo = IndexInfo {posts}
-      indexHTML = T.unpack $ substitute indexT (toJSON indexInfo)
-  writeFile' out indexHTML
-
-findPosts :: Action ()
-findPosts = do
-  pNames <- postNames
-  need ((\p -> srcToDest p -<.> "html") <$> pNames)
-
-buildPost :: (PostFilePath -> Action Post) -> FilePath -> Action ()
-buildPost postCache out = do
-  let srcPath = destToSrc out -<.> "md"
-      postURL = srcToURL srcPath
-  post <- postCache (PostFilePath srcPath)
-  template <- compileTemplate' "site/templates/post.html"
-  writeFile' out . T.unpack $ substitute template (toJSON post)
-
-sortByDate :: [Post] -> [Post]
-sortByDate = sortBy (flip compareDates)
-  where
-    compareDates = compare `on` date
-
-newtype PostFilePath =
-  PostFilePath String
-  deriving (Show, Eq, Hashable, Binary, NFData)
-
-```
+See the [hackage docs](https://hackage.haskell.org/package/slick) for in depth help on available combinators.
 
 # Overview
 
@@ -130,3 +33,62 @@ Here's a quick overview of what Slick can do:
     a database and render them out using Blaze html; well go ahead, we can help with that!
 - Provides caching of arbitrary (JSON serializable) objects using Shake resulting in super-fast rebuild times! 
 
+
+# Example Site:
+
+Here's an example of using slick to render out the posts for a pretty simple blog;
+
+```haskell
+module Main where
+
+import qualified Data.Text as T
+import Development.Shake
+import Development.Shake.FilePath
+import Data.Foldable
+import Slick
+
+
+-- convert a source filepath to a build filepath
+-- e.g. site/css/style.css -> build/css/style.css
+srcToBuild :: FilePath -> FilePath
+srcToBuild path = "build" </> dropDirectory1 path
+
+main' :: IO ()
+main' =
+  shakeArgs shakeOptions $ do
+    -- Require all the things we need to build the site
+    -- For this simplified example we'll just copy static assets and build a page for each post
+    "site" ~> need ["static", "posts"]
+    -- Require all static assets
+    "static" ~> do
+      staticFiles <- getDirectoryFiles "." ["site/css//*", "site/js//*", "site/images//*"]
+      let copyStaticFile path = copyFileChanged path (srcToBuild path)
+      traverse_ copyStaticFile staticFiles
+     -- Find and require every post to be built
+     -- this uses the `~>` 'phony' rule because it doesn't actually write any files on its own
+    "posts" ~> do
+      postPaths <- getDirectoryFiles "site/posts" ["*.md"]
+      -- We tell shake we need to build each individual post
+      -- We require each post separately so that Shake can cache them individually
+      need (((-<.> "html") . srcToBuild) <$> postPaths)
+     -- rule for actually building posts
+    "build/posts//*.html" %> \out -> do 
+      -- Recover the path where the source file for the post should be
+      let srcPath = (dropDirectory1 out) -<.> "md"
+      fileContents <- readFile' srcPath
+      -- Load a markdown source file into an Aeson Value 
+      -- The 'content' key contains an html-rendered string
+      -- Any metadata from a yaml block is loaded into the appropriate keys in the Aeson object
+      -- e.g. author, date, tags, etc.
+      postData <- markdownToHTML . T.pack $ fileContents
+      -- Load a mustache template using using cache if available
+      template <- compileTemplate' "site/templates/post.html"
+      -- Fill in the template using the post metadata/content
+      writeFile' out . T.unpack $ substitute template postData
+```
+
+Not pictured above is:
+
+- Deserializing post metadata into an object which implements `FromJSON`
+- Using custom Pandoc readers to load other document types
+- Using `jsonCache`s to cache intermediate JSON results to improve build times and simplify logic.

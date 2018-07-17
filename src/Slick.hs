@@ -20,7 +20,9 @@ module Slick
 
   -- ** Shake
   , simpleJsonCache
+  , simpleJsonCache'
   , jsonCache
+  , jsonCache'
   ) where
 
 import Slick.Caching

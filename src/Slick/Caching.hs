@@ -2,11 +2,12 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TypeApplications #-}
 
 module Slick.Caching
   ( simpleJsonCache
+  , simpleJsonCache'
   , jsonCache
+  , jsonCache'
   ) where
 
 import Data.Aeson as A
@@ -19,11 +20,24 @@ newtype CacheQuery q =
   CacheQuery q
   deriving (Show, Eq, Generic, Binary, NFData, Hashable)
 
+type instance RuleResult (CacheQuery q) = ByteString
+
+-- | A wrapper around 'addOracleCache' which given a @q@ which is a 'ShakeValue'
+-- allows caching and retrieving 'Value's within Shake. See documentation on
+-- 'addOracleCache' or see Slick examples for more info.
 jsonCache ::
+     ShakeValue q
+  => (q -> Action Value)
+  -> Rules (q -> Action Value)
+jsonCache = jsonCache'
+
+-- | Like 'jsonCache' but allows caching/retrieving any JSON serializable
+-- objects.
+jsonCache' ::
      forall a q. (ToJSON a, FromJSON a, ShakeValue q)
   => (q -> Action a)
   -> Rules (q -> Action a)
-jsonCache loader =
+jsonCache' loader =
   unpackJSON <$> addOracleCache (\(CacheQuery q) -> A.encode <$> loader q)
   where
     unpackJSON ::
@@ -35,13 +49,32 @@ jsonCache loader =
           Left err -> fail err
           Right res -> pure res
 
-simpleJsonCache ::
+-- | A wrapper around 'jsonCache' which simplifies caching of values which do NOT
+-- depend on an input parameter. Unfortunately Shake still requires that the
+-- key type implement several typeclasses, however this is easily accomplished 
+-- using @GeneralizedNewtypeDeriving@ and a wrapper around @()@.
+-- example usage:
+-- 
+-- > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+-- > module Main where
+-- > newtype ProjectList = ProjectList ()
+-- >   deriving (Show, Eq, Hashable, Binary, NFData)
+--  Within your shake Rules:
+--
+-- > projectCache = simpleJsonCache (ProjectList ()) $ do
+-- >   -- load your project list here; returning it as a Value
+simpleJsonCache :: ShakeValue q
+  => q
+  -> Action Value
+  -> Rules (Action Value)
+simpleJsonCache = simpleJsonCache'
+
+-- | Like 'simpleJsonCache' but allows caching any JSON serializable object.
+simpleJsonCache' ::
      forall q a. (ToJSON a, FromJSON a, ShakeValue q)
   => q
   -> Action a
   -> Rules (Action a)
-simpleJsonCache q loader = do
-  cacheGetter <- jsonCache (const loader)
+simpleJsonCache' q loader = do
+  cacheGetter <- jsonCache' (const loader)
   return $ cacheGetter q
-
-type instance RuleResult (CacheQuery q) = ByteString

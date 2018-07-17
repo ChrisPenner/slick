@@ -35,6 +35,37 @@ Here's a quick overview of what Slick can do:
     a database and render them out using Blaze html; well go ahead, we can help with that!
 - Provides caching of arbitrary (JSON serializable) objects using Shake resulting in super-fast rebuild times! 
 
+Another static site generator? What about Hakyll/Jekyll?
+--------------------------------------------------------
+
+Yup, yet another static site generator. I've tried using Hakyll and Jekyll on
+different occasions and found there was too much magic going on with all of the
+monadic contexts for me to understand how to customize things for my use-cases.
+Even adding simple tags/categories to my blog seemed far more complex then it
+needed to be; Hakyll specifically got me really bogged down; what was the
+Compiler monad? How does an Item work? How do I add a custom field? Why
+couldn't I just edit data directly like I'm used to doing in Haskell? They
+seemed a bit too opinionated without giving me escape hatches to wire in my own
+functionality. If they're working for you, then great! But they weren't working
+for me, so that's where SitePipe and subsequently Slick came from.
+
+Quick Start
+---------------
+
+The easiest way to get started is to clone this repo and try out
+the example in the example-site directory. 
+
+You can build the example using Stack by `cd`ing into the directory and running
+`stack build && stack exec example-site-exe site`. This creates a 'dist' folder with the
+results of the build. A quick way to serve the site is to use [Serve](https://www.npmjs.com/package/serve).
+
+```shell
+$ npm install -g serve
+serve dist
+```
+
+Then navigate to the port which is serving (usually http://localhost:3000 or http://localhost:5000 )
+
 
 # Example Site:
 

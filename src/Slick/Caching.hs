@@ -25,6 +25,19 @@ type instance RuleResult (CacheQuery q) = ByteString
 -- | A wrapper around 'addOracleCache' which given a @q@ which is a 'ShakeValue'
 -- allows caching and retrieving 'Value's within Shake. See documentation on
 -- 'addOracleCache' or see Slick examples for more info.
+-- 
+-- > -- We need to define a unique datatype as our cache key
+-- > newtype PostFilePath =
+-- >   PostFilePath String
+-- > -- We can derive the classes we need (using GeneralizedNewtypeDeriving) 
+-- > -- so long as the underlying type implements them
+-- >   deriving (Show, Eq, Hashable, Binary, NFData)
+-- > -- now in our shake rules we can create a cache by providing a loader action
+-- > 
+-- > do
+-- > postCache <- jsonCache $ \(PostFilePath path) ->
+-- >   readFile' path >>= markdownToHTML . Text.pack
+-- > -- Now use postCache inside an Action to load your post with caching!
 jsonCache ::
      ShakeValue q
   => (q -> Action Value)

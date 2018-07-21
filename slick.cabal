@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 92135c7604872ee92fb8e0cd098460c1b3a6eeae11d42c44827b5c7ba429470e
+-- hash: de26692a487cf6cb3d7f976c8e35382b4acb69f3bb6a99e5a7d288db6b942b23
 
 name:           slick
-version:        0.1.0.1
+version:        0.1.0.2
 description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
 homepage:       https://github.com/ChrisPenner/slick#readme
 bug-reports:    https://github.com/ChrisPenner/slick/issues

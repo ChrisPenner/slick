@@ -5,7 +5,6 @@ module Slick
 
   -- ** Mustache
     compileTemplate'
-  , module Text.Mustache
 
   -- ** Pandoc
   , markdownToHTML
@@ -23,6 +22,9 @@ module Slick
   , simpleJsonCache'
   , jsonCache
   , jsonCache'
+
+  -- ** Re-exported
+  , module Text.Mustache
   ) where
 
 import Slick.Caching

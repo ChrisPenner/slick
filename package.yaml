@@ -46,7 +46,7 @@ executables:
     - -with-rtsopts=-N
     - -Wall
     dependencies:
-    - sitepipe-shake
+    - slick
 
 tests:
   sitepipe-shake-test:

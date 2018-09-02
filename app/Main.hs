@@ -22,23 +22,23 @@ import Development.Shake hiding (Resource)
 import Development.Shake.Classes
 import Development.Shake.FilePath
 import GHC.Generics (Generic)
-import SitePipe.Shake
+import Slick
 
 main :: IO ()
 main =
   shakeArgs shakeOptions {shakeVerbosity = Chatty} $
     -- Set up caches
    do
-    postCache <- jsonCache loadPost
+    postCache <- jsonCache' loadPost
     allPostsCache <-
-      simpleJsonCache
+      simpleJsonCache'
         (SortedPostsCache ())
         (sortByDate <$> (postNames >>= traverse (postCache . PostFilePath)))
     sortedPostURLsCache <-
-      simpleJsonCache
+      simpleJsonCache'
         (SortedPostURLsCache ())
         (fmap (url :: Post -> String) <$> allPostsCache)
-    allTagsCache <- simpleJsonCache (TagCache ()) (getTags <$> allPostsCache)
+    allTagsCache <- simpleJsonCache' (TagCache ()) (getTags <$> allPostsCache)
     -- Require all the things we need to build the whole site
     "site" ~> need ["static", "posts", "tags", "dist/index.html"]
     -- Require all static assets

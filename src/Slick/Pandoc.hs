@@ -31,7 +31,11 @@ markdownOptions = def {readerExtensions = exts}
 
 -- | Reasonable options for rendering to HTML
 html5Options :: WriterOptions
-html5Options = def {writerHighlightStyle = Just tango}
+html5Options =
+  def
+    { writerHighlightStyle = Just tango
+    , writerExtensions = writerExtensions def `mappend` githubMarkdownExtensions
+    }
 
 -- | Handle possible pandoc failure within the Action Monad
 unPandocM :: PandocPure a -> Action a

@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Slick.Pandoc
@@ -38,8 +37,10 @@ html5Options = def
   }
 
 -- | Handle possible pandoc failure within the Action Monad
-unPandocM :: PandocPure a -> Action a
-unPandocM = either (fail . show) return . runPure
+unPandocM :: PandocIO a -> Action a
+unPandocM p = do
+  result <- liftIO $ runIO p
+  either (fail . show) return result
 
 -- | Convert markdown text into a 'Value';
 -- The 'Value'  has a "content" key containing rendered HTML
@@ -52,9 +53,9 @@ markdownToHTML =
 markdownToHTML' :: (FromJSON a) => T.Text -> Action a
 markdownToHTML' = markdownToHTML >=> convert
 
-type PandocReader textType = textType -> PandocPure Pandoc
+type PandocReader textType = textType -> PandocIO Pandoc
 
-type PandocWriter = Pandoc -> PandocPure T.Text
+type PandocWriter = Pandoc -> PandocIO T.Text
 
 -- | Given a reader from 'Text.Pandoc.Readers' this creates a loader which
 -- given the source document will read its metadata into a 'Value'

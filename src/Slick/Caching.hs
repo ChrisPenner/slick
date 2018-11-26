@@ -8,13 +8,15 @@ module Slick.Caching
   , simpleJsonCache'
   , jsonCache
   , jsonCache'
-  ) where
+  )
+where
 
-import Data.Aeson as A
-import Data.ByteString.Lazy
-import Development.Shake hiding (Resource)
-import Development.Shake.Classes
-import GHC.Generics (Generic)
+import           Data.Aeson                    as A
+import           Data.ByteString.Lazy
+import           Development.Shake                 hiding ( Resource )
+import           Development.Shake.Classes
+import           GHC.Generics                             ( Generic )
+
 
 newtype CacheQuery q =
   CacheQuery q
@@ -38,29 +40,26 @@ type instance RuleResult (CacheQuery q) = ByteString
 -- > postCache <- jsonCache $ \(PostFilePath path) ->
 -- >   readFile' path >>= markdownToHTML . Text.pack
 -- > -- Now use postCache inside an Action to load your post with caching!
-jsonCache ::
-     ShakeValue q
-  => (q -> Action Value)
-  -> Rules (q -> Action Value)
+jsonCache :: ShakeValue q => (q -> Action Value) -> Rules (q -> Action Value)
 jsonCache = jsonCache'
 
 -- | Like 'jsonCache' but allows caching/retrieving any JSON serializable
 -- objects.
-jsonCache' ::
-     forall a q. (ToJSON a, FromJSON a, ShakeValue q)
+jsonCache'
+  :: forall a q
+   . (ToJSON a, FromJSON a, ShakeValue q)
   => (q -> Action a)
   -> Rules (q -> Action a)
-jsonCache' loader =
-  unpackJSON <$> addOracleCache (\(CacheQuery q) -> A.encode <$> loader q)
-  where
-    unpackJSON ::
-         FromJSON a => (CacheQuery q -> Action ByteString) -> q -> Action a
-    unpackJSON runCacheQuery =
-      \q -> do
-        bytes <- runCacheQuery $ CacheQuery q
-        case A.eitherDecode bytes of
-          Left err -> fail err
-          Right res -> pure res
+jsonCache' loader = unpackJSON
+  <$> addOracleCache (\(CacheQuery q) -> A.encode <$> loader q)
+ where
+  unpackJSON
+    :: FromJSON a => (CacheQuery q -> Action ByteString) -> q -> Action a
+  unpackJSON runCacheQuery = \q -> do
+    bytes <- runCacheQuery $ CacheQuery q
+    case A.eitherDecode bytes of
+      Left  err -> fail err
+      Right res -> pure res
 
 -- | A wrapper around 'jsonCache' which simplifies caching of values which do NOT
 -- depend on an input parameter. Unfortunately Shake still requires that the
@@ -76,15 +75,13 @@ jsonCache' loader =
 --
 -- > projectCache = simpleJsonCache (ProjectList ()) $ do
 -- >   -- load your project list here; returning it as a Value
-simpleJsonCache :: ShakeValue q
-  => q
-  -> Action Value
-  -> Rules (Action Value)
+simpleJsonCache :: ShakeValue q => q -> Action Value -> Rules (Action Value)
 simpleJsonCache = simpleJsonCache'
 
 -- | Like 'simpleJsonCache' but allows caching any JSON serializable object.
-simpleJsonCache' ::
-     forall q a. (ToJSON a, FromJSON a, ShakeValue q)
+simpleJsonCache'
+  :: forall q a
+   . (ToJSON a, FromJSON a, ShakeValue q)
   => q
   -> Action a
   -> Rules (Action a)

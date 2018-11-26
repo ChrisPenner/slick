@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 75e40e0c9806b58cbbc105f1d144866a4fac557689b2b4a7b7ba48a065a3dfca
+-- hash: 82e242baaf6e23856eb332b4dea2777d8e59e45bf7bd685b1ab9b5adf58d0607
 
 name:           slick
 version:        0.1.1.0
@@ -15,10 +17,9 @@ copyright:      2018 Chris Penner
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
-    ChangeLog.md
     README.md
+    ChangeLog.md
 
 source-repository head
   type: git

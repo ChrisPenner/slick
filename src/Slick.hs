@@ -25,9 +25,10 @@ module Slick
 
   -- ** Re-exported
   , module Text.Mustache
-  ) where
+  )
+where
 
-import Slick.Caching
-import Slick.Mustache
-import Slick.Pandoc
-import Text.Mustache hiding ((~>))
+import           Slick.Caching
+import           Slick.Mustache
+import           Slick.Pandoc
+import           Text.Mustache                     hiding ( (~>) )

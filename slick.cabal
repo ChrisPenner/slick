@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 82e242baaf6e23856eb332b4dea2777d8e59e45bf7bd685b1ab9b5adf58d0607
+-- hash: 3cc544477064cc4c1a83dee37ce64b9559692a238162f8704a62c1fb10265bed
 
 name:           slick
-version:        0.1.1.0
+version:        0.2.0.0
 description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
 homepage:       https://github.com/ChrisPenner/slick#readme
 bug-reports:    https://github.com/ChrisPenner/slick/issues

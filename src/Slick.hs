@@ -15,6 +15,8 @@ module Slick
   , makePandocReader'
   , loadUsing
   , loadUsing'
+  , markdownOptions
+  , html5Options
 
   -- ** Aeson
   , convert

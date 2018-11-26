@@ -8,6 +8,8 @@ module Slick.Pandoc
   , loadUsing
   , loadUsing'
   , convert
+  , html5Options
+  , markdownOptions
   , PandocReader
   , PandocWriter
   ) where
@@ -27,14 +29,19 @@ markdownOptions :: ReaderOptions
 markdownOptions = def { readerExtensions = exts }
  where
   exts = mconcat
-    [extensionsFromList [Ext_yaml_metadata_block], githubMarkdownExtensions]
+    [ extensionsFromList
+      [ Ext_yaml_metadata_block
+      , Ext_fenced_code_attributes
+      , Ext_auto_identifiers
+      ]
+    , githubMarkdownExtensions
+    ]
 
 -- | Reasonable options for rendering to HTML
 html5Options :: WriterOptions
-html5Options = def
-  { writerHighlightStyle = Just tango
-  , writerExtensions = writerExtensions def `mappend` githubMarkdownExtensions
-  }
+html5Options = def { writerHighlightStyle = Just tango
+                   , writerExtensions     = writerExtensions def
+                   }
 
 -- | Handle possible pandoc failure within the Action Monad
 unPandocM :: PandocIO a -> Action a

@@ -7,6 +7,8 @@ module Slick
     compileTemplate'
 
   -- ** Pandoc
+  , PandocReader
+  , PandocWriter
   , markdownToHTML
   , markdownToHTML'
   , makePandocReader

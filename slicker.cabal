@@ -1,19 +1,19 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3cc544477064cc4c1a83dee37ce64b9559692a238162f8704a62c1fb10265bed
+-- hash: 7c98e6ecc9f9f2ff83543f9de50438155f99847f9747f1a23c057e190c833e76
 
-name:           slick
-version:        0.2.0.0
-description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
-homepage:       https://github.com/ChrisPenner/slick#readme
-bug-reports:    https://github.com/ChrisPenner/slick/issues
-author:         Chris Penner
+name:           slicker
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/migamake/slicker#readme>
+homepage:       https://github.com/migamake/slicker#readme
+bug-reports:    https://github.com/migamake/slicker/issues
+author:         Chris Penner, Michał J. Gajda, Sergey Bushnyak
 maintainer:     example@example.com
-copyright:      2018 Chris Penner
+copyright:      2018, Chris Penner, 2019, Michał J. Gajda, Sergey Bushnyak
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -23,7 +23,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/ChrisPenner/slick
+  location: https://github.com/migamake/slicker
 
 library
   exposed-modules:
@@ -32,7 +32,7 @@ library
       Slick.Mustache
       Slick.Pandoc
   other-modules:
-      Paths_slick
+      Paths_slicker
   hs-source-dirs:
       src
   build-depends:
@@ -54,7 +54,7 @@ test-suite slick-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_slick
+      Paths_slicker
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N

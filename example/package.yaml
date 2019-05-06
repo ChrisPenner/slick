@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/ChrisPenner/example-site#readme>
+description:         Please see the README on GitHub at <https://github.com/migamake/example#readme>
 
 executables:
   example-site-exe:
@@ -29,7 +29,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - shake
-    - slick
+    - slicker
     - base >= 4.7 && < 5
     - aeson
     - lens-aeson
@@ -41,3 +41,6 @@ executables:
     - containers
     - mustache
     - time
+    - MissingH
+    - directory
+    - extra

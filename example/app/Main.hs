@@ -1,9 +1,12 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NamedFieldPuns             #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TemplateHaskell            #-}
 
 module Main where
 
@@ -21,8 +24,13 @@ import           Data.Time
 import           Development.Shake
 import           Development.Shake.Classes
 import           Development.Shake.FilePath
+import           Development.Shake.Util     (shakeArgsPruneWith)
 import           GHC.Generics               (Generic)
 import           Slick
+import           System.Console.GetOpt
+import           System.Directory
+import           System.Directory.Extra     (listFilesRecursive, removeFile)
+import           System.Environment
 
 import           Builder
 import           Types
@@ -77,11 +85,10 @@ runSiteBuilder :: ShakeOptions                     -- ^ Options for the Shake bu
                -> [OptDescr (Either String Flags)] -- ^ Converted CLI arguments
                -> IO ()
 runSiteBuilder shOpts flags =
- shakeArgsPruneWith
-    shOpts pruner flags $
-      \flags targets -> do
-        let rls = Just $ buildRules flags
-        return $ rls
+  shakeArgsWith shOpts flags $
+   \flags targets -> do
+     let rls = Just $ buildRules flags
+     return $ rls
 
 main :: IO ()
 main = do

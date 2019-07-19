@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 72976dbafe7c165fc14dbb0ae1fdf8775258a8d8a75af8f3b2f868437cf37802
+-- hash: eb4c8bbcf5a7ce3cfd77e526c08efb78e8222c880bad7f3281bd001599b20662
 
 name:           slick
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
-homepage:       https://github.com/migamake/slicker#readme
-bug-reports:    https://github.com/migamake/slicker/issues
+homepage:       https://github.com/ChrisPenner/slicker#readme
+bug-reports:    https://github.com/ChrisPenner/slicker/issues
 author:         Chris Penner, Michał J. Gajda, Sergey Bushnyak
 maintainer:     example@example.com
 copyright:      2018, Chris Penner, 2019, Michał J. Gajda, Sergey Bushnyak
@@ -23,7 +23,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/migamake/slicker
+  location: https://github.com/ChrisPenner/slicker
 
 library
   exposed-modules:
@@ -33,6 +33,7 @@ library
       Slick.Mustache
       Slick.Pandoc
       Slick.Serve
+      Slick.Utils
   other-modules:
       Paths_slick
   hs-source-dirs:
@@ -43,6 +44,8 @@ library
     , binary
     , bytestring
     , containers
+    , directory
+    , extra
     , http-types
     , lens
     , lens-aeson
@@ -72,6 +75,8 @@ test-suite slick-test
     , binary
     , bytestring
     , containers
+    , directory
+    , extra
     , http-types
     , lens
     , lens-aeson

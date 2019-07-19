@@ -54,6 +54,8 @@ flags =
   , Option "" ["watch"        ] (NoArg $ Right Watch      ) "running with watch"
   ]
 
+-- | Specific build rules for the Shake system
+--   defines workflow to build the webiste
 buildRules :: Foldable t => t Flags -> Rules ()
 buildRules flags = do
   postCache <- jsonCache' loadPost
@@ -87,7 +89,7 @@ runSiteBuilder :: ShakeOptions                     -- ^ Options for the Shake bu
                -> [OptDescr (Either String Flags)] -- ^ Converted CLI arguments
                -> IO ()
 runSiteBuilder shOpts flags =
-  shakeArgsPruneWith pruner shOpts flags $
+  shakeArgsPruneWith shOpts pruner flags $
    \flags targets -> do
      let rls = Just $ buildRules flags
      return $ rls

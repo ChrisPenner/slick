@@ -71,8 +71,8 @@ flattenMeta (Meta meta) = toJSON $ fmap go meta
 
 --------------------------------------------------------------------------------
 
--- | Custom cleanup for the Shake builder
---
+-- | Remove all files that are in the target directory,
+--   but not in the `shake` rules.
 pruner :: [FilePath] -> IO ()
 pruner listOfFiles = do
   present <- listFilesRecursive "public"

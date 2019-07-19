@@ -1,6 +1,6 @@
 name:                slick
 version:             0.1.0.0
-github:              "migamake/slicker"
+github:              "ChrisPenner/slicker"
 license:             BSD3
 author:              "Chris Penner, Michał J. Gajda, Sergey Bushnyak"
 maintainer:          "example@example.com"
@@ -28,6 +28,8 @@ dependencies:
 - warp
 - wai-app-static
 - wai-websockets >= 3.0.1
+- directory
+- extra
 
 library:
   source-dirs: src

@@ -8,6 +8,7 @@ module Slick.Build
   , destToSrc
   , srcToDest
   , flattenMeta
+  , pruner
   , EntityFilePath(..)
   ) where
 
@@ -15,15 +16,19 @@ import           Control.Lens
 import           Control.Monad
 import           Data.Aeson
 import           Data.Aeson.Lens
+import           Data.List                  as L (intersperse, sortBy, (\\))
 import qualified Data.Text                  as T
 import           Development.Shake
 import           Development.Shake          hiding (Resource)
 import           Development.Shake.Classes
 import           Development.Shake.FilePath
 import           GHC.Generics               hiding (Meta)
+import           System.Directory.Extra     (listFilesRecursive, removeFile)
 import           Text.Pandoc
 import           Text.Pandoc.Highlighting
 import           Text.Pandoc.Shared
+
+import           Slick.Utils
 
 --------------------------------------------------------------------------------
 
@@ -65,3 +70,13 @@ flattenMeta (Meta meta) = toJSON $ fmap go meta
   go (MetaString  m) = toJSON m
   go (MetaInlines m) = toJSON $ stringify m
   go (MetaBlocks  m) = toJSON $ stringify m
+
+--------------------------------------------------------------------------------
+
+-- | Custom cleanup for the Shake builder
+--
+pruner :: [FilePath] -> IO ()
+pruner listOfFiles = do
+  present <- listFilesRecursive "public"
+  mapM_ removeFile $ (toStandard <$> present) L.\\ (toStandard <$> listOfFiles)
+  putStrLn "PRUNER  "

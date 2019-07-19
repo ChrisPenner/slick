@@ -60,11 +60,6 @@ data Post =
     , image   :: Maybe String
     } deriving (Generic, Eq, Ord, Show, FromJSON, ToJSON)
 
--- | Generalized version of filepath
-newtype EntityFilePath a =
-  EntityFilePath String
-   deriving (Show, Eq,  Generic, Hashable, Binary, NFData)
-
 -- | A simple wrapper data-type which implements 'ShakeValue';
 --   Used as a Shake Cache key to build a cache of post objects.
 newtype PostFilePath =

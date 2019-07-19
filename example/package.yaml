@@ -29,7 +29,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - shake
-    - slicker
+    - slick
     - base >= 4.7 && < 5
     - aeson
     - lens-aeson

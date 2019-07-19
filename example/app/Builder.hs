@@ -35,6 +35,7 @@ import           Development.Shake
 import           Development.Shake.Classes
 import           Development.Shake.FilePath
 import           Slick
+import           Slick.Build
 import           Slick.Pandoc
 import           System.Console.GetOpt
 import           System.Environment
@@ -62,32 +63,8 @@ requirePosts = do
 postNames :: Action [FilePath]
 postNames = getDirectoryFiles "." ["site/posts//*.md"]
 
--- | convert 'build' filepaths into source file filepaths
-destToSrc :: FilePath -> FilePath
-destToSrc p = "site" </> dropDirectory1 p
-
--- | convert source filepaths into build filepaths
-srcToDest :: FilePath -> FilePath
-srcToDest p = "dist" </> dropDirectory1 p
-
--- | convert a source file path into a URL
-srcToURL :: FilePath -> String
-srcToURL = ("/" ++) . dropDirectory1 . (-<.> ".html")
-
 --------------------------------------------------------------------------------
 -- Page Loaders
-
-loadEntity :: FromJSON b => EntityFilePath a -> Action b
-loadEntity (EntityFilePath path) = (subloadEntity path)
-
-subloadEntity :: FromJSON b => FilePath -> Action b
-subloadEntity entityPath = do
-  let srcPath = destToSrc entityPath -<.> "md"
-  entityData <- readFile' srcPath >>= markdownToHTML . T.pack
-  let entityURL = T.pack  . srcToURL $ entityPath
-      withURL = _Object . at "url"     ?~ String entityURL
-      withSrc = _Object . at "srcPath" ?~ String (T.pack srcPath)
-  convert . withSrc . withURL $ entityData
 
 -- | Given a post source-file's file path as a cache key, load the Post object
 -- for it. This is used with 'jsonCache' to provide post caching.

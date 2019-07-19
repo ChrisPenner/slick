@@ -1,7 +1,7 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeFamilies               #-}
 
 module Slick.Caching
   ( simpleJsonCache
@@ -11,12 +11,13 @@ module Slick.Caching
   )
 where
 
-import           Data.Aeson                    as A
+import           Data.Aeson                as A
 import           Data.ByteString.Lazy
-import           Development.Shake                 hiding ( Resource )
+import           Development.Shake         hiding (Resource)
 import           Development.Shake.Classes
-import           GHC.Generics                             ( Generic )
+import           GHC.Generics              (Generic)
 
+--------------------------------------------------------------------------------
 
 newtype CacheQuery q =
   CacheQuery q
@@ -27,15 +28,15 @@ type instance RuleResult (CacheQuery q) = ByteString
 -- | A wrapper around 'addOracleCache' which given a @q@ which is a 'ShakeValue'
 -- allows caching and retrieving 'Value's within Shake. See documentation on
 -- 'addOracleCache' or see Slick examples for more info.
--- 
+--
 -- > -- We need to define a unique datatype as our cache key
 -- > newtype PostFilePath =
 -- >   PostFilePath String
--- > -- We can derive the classes we need (using GeneralizedNewtypeDeriving) 
+-- > -- We can derive the classes we need (using GeneralizedNewtypeDeriving)
 -- > -- so long as the underlying type implements them
 -- >   deriving (Show, Eq, Hashable, Binary, NFData)
 -- > -- now in our shake rules we can create a cache by providing a loader action
--- > 
+-- >
 -- > do
 -- > postCache <- jsonCache $ \(PostFilePath path) ->
 -- >   readFile' path >>= markdownToHTML . Text.pack
@@ -63,10 +64,10 @@ jsonCache' loader = unpackJSON
 
 -- | A wrapper around 'jsonCache' which simplifies caching of values which do NOT
 -- depend on an input parameter. Unfortunately Shake still requires that the
--- key type implement several typeclasses, however this is easily accomplished 
+-- key type implement several typeclasses, however this is easily accomplished
 -- using @GeneralizedNewtypeDeriving@ and a wrapper around @()@.
 -- example usage:
--- 
+--
 -- > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -- > module Main where
 -- > newtype ProjectList = ProjectList ()

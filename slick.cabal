@@ -4,9 +4,9 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7c98e6ecc9f9f2ff83543f9de50438155f99847f9747f1a23c057e190c833e76
+-- hash: 02a22a74a08ff4d6a8a6d5806c2022080ac2479dd50c8413a850daa83e7f638e
 
-name:           slicker
+name:           slick
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/migamake/slicker#readme>
 homepage:       https://github.com/migamake/slicker#readme
@@ -28,11 +28,12 @@ source-repository head
 library
   exposed-modules:
       Slick
+      Slick.Build
       Slick.Caching
       Slick.Mustache
       Slick.Pandoc
   other-modules:
-      Paths_slicker
+      Paths_slick
   hs-source-dirs:
       src
   build-depends:
@@ -54,7 +55,7 @@ test-suite slick-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_slicker
+      Paths_slick
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N

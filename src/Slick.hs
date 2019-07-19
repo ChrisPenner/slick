@@ -1,13 +1,8 @@
+-- | Slick
+--  This module re-exports everything you need to use Slick
+
 module Slick
-  (
-  -- * Slick
-  -- | This module re-exports everything you need to use Slick
-
-  -- ** Mustache
-    compileTemplate'
-
-  -- ** Pandoc
-  , PandocReader
+  ( PandocReader
   , PandocWriter
   , markdownToHTML
   , markdownToHTML'
@@ -27,12 +22,15 @@ module Slick
   , jsonCache
   , jsonCache'
 
+  -- ** Mustache
+  , compileTemplate'
+
   -- ** Re-exported
   , module Text.Mustache
-  )
-where
+  ) where
 
+import           Slick.Build
 import           Slick.Caching
 import           Slick.Mustache
 import           Slick.Pandoc
-import           Text.Mustache                     hiding ( (~>) )
+import           Text.Mustache  hiding ((~>))

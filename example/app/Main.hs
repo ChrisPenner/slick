@@ -35,7 +35,6 @@ import           System.Directory.Extra     (listFilesRecursive, removeFile)
 import           System.Environment
 
 import           Builder
-import           Types
 
 --------------------------------------------------------------------------------
 

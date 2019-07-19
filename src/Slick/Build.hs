@@ -28,8 +28,6 @@ import           Text.Pandoc
 import           Text.Pandoc.Highlighting
 import           Text.Pandoc.Shared
 
-import           Slick.Utils
-
 --------------------------------------------------------------------------------
 
 -- | Generalized version of filepath

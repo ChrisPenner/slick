@@ -1,6 +1,6 @@
 name:                slick
 version:             0.1.0.1
-github:              "ChrisPenner/slicker"
+github:              "ChrisPenner/slick"
 license:             BSD3
 author:              "Chris Penner, Michał J. Gajda, Sergey Bushnyak"
 maintainer:          "example@example.com"
@@ -19,7 +19,6 @@ dependencies:
 - text
 - binary
 - bytestring
-- containers
 - mustache
 - time
 - http-types
@@ -33,6 +32,15 @@ dependencies:
 
 library:
   source-dirs: src
+  exposed-modules:
+    - Slick
+    - Slick.Build
+    - Slick.Pandoc
+    - Slick.Serve
+    - Slick.Utils
+  other-modules:
+    - Slick.Mustache
+    - Slick.Caching
 
 tests:
   slick-test:

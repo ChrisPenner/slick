@@ -1,4 +1,5 @@
 resolver: lts-11.15
+ghc-options: {"$locals": -ddump-to-file -ddump-hi}
 
 packages:
 - .

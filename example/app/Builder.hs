@@ -10,7 +10,11 @@
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TemplateHaskell           #-}
 
-module Builder where
+module Builder( requirePosts
+              , loadPost
+              , buildIndex
+              , buildPost
+              ) where
 
 import           Control.Applicative
 import           Control.Lens

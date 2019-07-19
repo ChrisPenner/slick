@@ -15,6 +15,7 @@ import           Data.Aeson                 as A
 import           Data.Aeson.Lens
 import           Data.Function              (on)
 import           Data.List                  (sortBy)
+import           Data.List                  as L (intersperse, sortBy, (\\))
 import           Data.Map                   as M
 import           Data.Monoid
 import           Data.Set                   as S
@@ -27,6 +28,7 @@ import           Development.Shake.FilePath
 import           Development.Shake.Util     (shakeArgsPruneWith)
 import           GHC.Generics               (Generic)
 import           Slick
+import           Slick.Build
 import           System.Console.GetOpt
 import           System.Directory
 import           System.Directory.Extra     (listFilesRecursive, removeFile)
@@ -85,7 +87,7 @@ runSiteBuilder :: ShakeOptions                     -- ^ Options for the Shake bu
                -> [OptDescr (Either String Flags)] -- ^ Converted CLI arguments
                -> IO ()
 runSiteBuilder shOpts flags =
-  shakeArgsWith shOpts flags $
+  shakeArgsPruneWith pruner shOpts flags $
    \flags targets -> do
      let rls = Just $ buildRules flags
      return $ rls

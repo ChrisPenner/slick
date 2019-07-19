@@ -2,9 +2,7 @@
 {-# LANGUAGE TupleSections     #-}
 
 module Slick.Utils
-  ( renderToDay
-  , fromEither
-  , getDirectoryPaths
+  ( getDirectoryPaths
   ) where
 
 import           Control.Monad
@@ -21,20 +19,6 @@ import           System.Environment
 
 ------------------------------------------------------------------------------
 -- Helper functions
-
--- | Generalized sorting function
-sortByM :: (Monad m, Ord k) => (a -> m k) -> [a] -> m [a]
-sortByM f xs =
-  liftM (Prelude.map fst . sortBy (comparing snd)) $ mapM (\x -> liftM (x,) (f x)) xs
-
--- | Render timestamp to the format required by page design
-renderToDay :: FormatTime t => t -> String
-renderToDay = formatTime defaultTimeLocale "%B %e, %Y"
-
--- | Take an Either,  and return the value inside it
-fromEither :: Either a a -> a
-fromEither (Left a)  = a
-fromEither (Right a) = a
 
 -- | Given a list of extensions and directories,
 --   find all files that match, and return full paths.

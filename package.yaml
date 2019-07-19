@@ -8,7 +8,7 @@ copyright:           "2018, Chris Penner, 2019, Michał J. Gajda, Sergey Bushnya
 extra-source-files:
 - README.md
 - ChangeLog.md
-description:         Please see the README on GitHub at <https://github.com/migamake/slicker#readme>
+description:         Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
 dependencies:
 - base >= 4.7 && < 5
 - shake
@@ -22,6 +22,12 @@ dependencies:
 - containers
 - mustache
 - time
+- http-types
+- websockets
+- wai
+- warp
+- wai-app-static
+- wai-websockets >= 3.0.1
 
 library:
   source-dirs: src

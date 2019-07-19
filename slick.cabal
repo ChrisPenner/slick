@@ -4,11 +4,11 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 02a22a74a08ff4d6a8a6d5806c2022080ac2479dd50c8413a850daa83e7f638e
+-- hash: 72976dbafe7c165fc14dbb0ae1fdf8775258a8d8a75af8f3b2f868437cf37802
 
 name:           slick
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/migamake/slicker#readme>
+description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
 homepage:       https://github.com/migamake/slicker#readme
 bug-reports:    https://github.com/migamake/slicker/issues
 author:         Chris Penner, Michał J. Gajda, Sergey Bushnyak
@@ -32,6 +32,7 @@ library
       Slick.Caching
       Slick.Mustache
       Slick.Pandoc
+      Slick.Serve
   other-modules:
       Paths_slick
   hs-source-dirs:
@@ -42,6 +43,7 @@ library
     , binary
     , bytestring
     , containers
+    , http-types
     , lens
     , lens-aeson
     , mustache
@@ -49,6 +51,11 @@ library
     , shake
     , text
     , time
+    , wai
+    , wai-app-static
+    , wai-websockets >=3.0.1
+    , warp
+    , websockets
   default-language: Haskell2010
 
 test-suite slick-test
@@ -65,6 +72,7 @@ test-suite slick-test
     , binary
     , bytestring
     , containers
+    , http-types
     , lens
     , lens-aeson
     , mustache
@@ -73,4 +81,9 @@ test-suite slick-test
     , slick
     , text
     , time
+    , wai
+    , wai-app-static
+    , wai-websockets >=3.0.1
+    , warp
+    , websockets
   default-language: Haskell2010

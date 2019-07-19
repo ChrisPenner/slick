@@ -20,7 +20,6 @@ import           Data.List                  as L (intersperse, sortBy, (\\))
 import           Data.Monoid
 import qualified Data.Text                  as T
 import           Development.Shake
-import           Development.Shake          hiding (Resource)
 import           Development.Shake.Classes
 import           Development.Shake.FilePath
 import           GHC.Generics               hiding (Meta)

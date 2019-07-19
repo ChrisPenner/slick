@@ -17,6 +17,7 @@ import           Control.Monad
 import           Data.Aeson
 import           Data.Aeson.Lens
 import           Data.List                  as L (intersperse, sortBy, (\\))
+import           Data.Monoid
 import qualified Data.Text                  as T
 import           Development.Shake
 import           Development.Shake          hiding (Resource)
@@ -76,5 +77,8 @@ flattenMeta (Meta meta) = toJSON $ fmap go meta
 pruner :: [FilePath] -> IO ()
 pruner listOfFiles = do
   present <- listFilesRecursive "public"
-  mapM_ removeFile $ (toStandard <$> present) L.\\ (toStandard <$> listOfFiles)
-  putStrLn "PRUNER  "
+  let listOfFilesToRemove = (toStandard <$> present) L.\\ (toStandard <$> listOfFiles)
+      removedFiles = show listOfFilesToRemove
+  mapM_ removeFile listOfFilesToRemove
+
+  putStrLn $ "Pruned stale outputs: " <> removedFiles

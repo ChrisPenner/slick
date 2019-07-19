@@ -128,13 +128,15 @@ loadUsing' :: (FromJSON a)
 loadUsing' reader writer text =
   loadUsing reader writer text >>= convert
 
--- | Generalized Entity Loader
---
+-- | Generalized Entity Loader, wrapper in
+--   own function to respolve EntityFilePath properly
 loadEntity :: FromJSON b => EntityFilePath a
            -> Action b
 loadEntity (EntityFilePath path) =
   subloadEntity path
 
+-- | Helper functiona for generalized `loadEntity`
+--   provides conversion from source to output file format
 subloadEntity :: FromJSON b => FilePath -> Action b
 subloadEntity entityPath = do
   let srcPath = destToSrc entityPath -<.> "md"

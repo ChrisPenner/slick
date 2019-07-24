@@ -40,6 +40,7 @@ import           Slick.Pandoc
 import           System.Console.GetOpt
 import           System.Environment
 import           Text.Pandoc.Extensions
+import           Text.Pandoc.Highlighting
 import           Text.Pandoc.Options
 import           Text.Pandoc.Readers.Markdown (readMarkdown)
 import           Text.Pandoc.Writers.HTML     (writeHtml5String)
@@ -71,7 +72,7 @@ postNames = getDirectoryFiles "." ["site/posts//*.md"]
 loadPost :: PostFilePath -> Action Post
 loadPost (PostFilePath postPath) = do
   let srcPath = destToSrc postPath -<.> "md"
-  postData <- readFile' srcPath >>= markdownToHTML . T.pack
+  postData <- readFile' srcPath >>= markdownToHTML markdownOptions html5Options . T.pack
   let postURL = T.pack . srcToURL $ postPath
       withURL = _Object . at "url" ?~ String postURL
       withSrc = _Object . at "srcPath" ?~ String (T.pack srcPath)
@@ -97,3 +98,27 @@ buildPost postCache out = do
   post <- postCache (PostFilePath srcPath)
   template <- compileTemplate' "site/templates/post.html"
   writeFile' out . T.unpack $ substitute template (toJSON post)
+
+--------------------------------------------------------------------------------
+-- Default Pandoc Options
+
+-- | Reasonable options for reading a markdown file
+markdownOptions :: ReaderOptions
+markdownOptions =
+  def { readerExtensions = exts }
+   where
+     exts = mconcat
+       [ extensionsFromList
+         [ Ext_yaml_metadata_block
+         , Ext_fenced_code_attributes
+         , Ext_auto_identifiers
+         ]
+       , githubMarkdownExtensions
+       ]
+
+-- | Reasonable options for rendering to HTML
+html5Options :: WriterOptions
+html5Options =
+  def { writerHighlightStyle = Just tango
+      , writerExtensions     = writerExtensions def
+      }

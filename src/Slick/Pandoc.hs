@@ -5,8 +5,6 @@ module Slick.Pandoc
   , markdownToHTML'
   , makePandocReader
   , makePandocReader'
-  , html5Options
-  , markdownOptions
   , PandocReader
   , PandocWriter
   , loadUsing
@@ -24,36 +22,15 @@ import           Development.Shake.Classes
 import           Development.Shake.FilePath
 import           GHC.Generics               hiding (Meta)
 import           Text.Pandoc
-import           Text.Pandoc.Highlighting
 import           Text.Pandoc.Shared
 
 import           Slick.Build
+import           Slick.Utils
 
 --------------------------------------------------------------------------------
 
 type PandocReader textType = textType -> PandocIO Pandoc
 type PandocWriter = Pandoc -> PandocIO T.Text
-
--- | Reasonable options for reading a markdown file
-markdownOptions :: ReaderOptions
-markdownOptions =
-  def { readerExtensions = exts }
-   where
-     exts = mconcat
-       [ extensionsFromList
-         [ Ext_yaml_metadata_block
-         , Ext_fenced_code_attributes
-         , Ext_auto_identifiers
-         ]
-       , githubMarkdownExtensions
-       ]
-
--- | Reasonable options for rendering to HTML
-html5Options :: WriterOptions
-html5Options =
-  def { writerHighlightStyle = Just tango
-      , writerExtensions     = writerExtensions def
-      }
 
 --------------------------------------------------------------------------------
 
@@ -66,15 +43,24 @@ unPandocM p = do
 -- | Convert markdown text into a 'Value';
 --   The 'Value'  has a "content" key containing rendered HTML
 --   Metadata is assigned on the respective keys in the 'Value'
-markdownToHTML :: T.Text -> Action Value
-markdownToHTML =
+markdownToHTML :: ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
+               -> WriterOptions  -- ^ Pandoc writer options to modify output
+               -> T.Text         -- ^ Text for conversion
+               -> Action Value
+markdownToHTML readOps writeOps textToConvert =
   loadUsing
-    (readMarkdown markdownOptions)
-    (writeHtml5String html5Options)
+    (readMarkdown readOps)
+    (writeHtml5String writeOps)
+    textToConvert
 
 -- | Like 'markdownToHTML' but allows returning any JSON serializable object
-markdownToHTML' :: (FromJSON a) => T.Text -> Action a
-markdownToHTML' = markdownToHTML >=> convert
+markdownToHTML' :: (FromJSON a)
+                => ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
+                -> WriterOptions  -- ^ Pandoc writer options to modify output
+                -> T.Text
+                -> Action a
+markdownToHTML' rops wops txt =
+  mseq (markdownToHTML rops wops) convert txt
 
 -- | Given a reader from 'Text.Pandoc.Readers' this creates a loader which
 --   given the source document will read its metadata into a 'Value'
@@ -98,7 +84,6 @@ makePandocReader' readerFunc text = do
   return (pdoc, convertedMeta)
 
 --------------------------------------------------------------------------------
-
 
 -- | Load in a source document using the given 'PandocReader', then render the 'Pandoc'
 --   into text using the given 'PandocWriter'.
@@ -127,17 +112,24 @@ loadUsing' reader writer text =
 
 -- | Generalized Entity Loader, wrapper in
 --   own function to respolve EntityFilePath properly
-loadEntity :: FromJSON b => EntityFilePath a
+loadEntity :: FromJSON b
+           => ReaderOptions      -- ^ Pandoc reader options to specify extensions or other functionality
+           -> WriterOptions      -- ^ Pandoc writer options to modify output
+           -> EntityFilePath a   -- ^
            -> Action b
-loadEntity (EntityFilePath path) =
-  subloadEntity path
+loadEntity rops wops (EntityFilePath path) =
+  subloadEntity rops wops path
 
 -- | Helper functiona for generalized `loadEntity`
 --   provides conversion from source to output file format
-subloadEntity :: FromJSON b => FilePath -> Action b
-subloadEntity entityPath = do
+subloadEntity :: FromJSON b
+              => ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
+              -> WriterOptions  -- ^ Pandoc writer options to modify output
+              -> FilePath
+              -> Action b
+subloadEntity rops wops entityPath = do
   let srcPath = destToSrc entityPath -<.> "md"
-  entityData <- readFile' srcPath >>= markdownToHTML . T.pack
+  entityData <- readFile' srcPath >>= markdownToHTML rops wops . T.pack
   let entityURL = T.pack  . srcToURL $ entityPath
       withURL = _Object . at "url"     ?~ String entityURL
       withSrc = _Object . at "srcPath" ?~ String (T.pack srcPath)

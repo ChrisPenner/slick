@@ -57,7 +57,7 @@ markdownToHTML readOps writeOps textToConvert =
 markdownToHTML' :: (FromJSON a)
                 => ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
                 -> WriterOptions  -- ^ Pandoc writer options to modify output
-                -> T.Text
+                -> T.Text         -- ^ Text for conversion
                 -> Action a
 markdownToHTML' rops wops txt =
   mseq (markdownToHTML rops wops) convert txt
@@ -115,7 +115,7 @@ loadUsing' reader writer text =
 loadEntity :: FromJSON b
            => ReaderOptions      -- ^ Pandoc reader options to specify extensions or other functionality
            -> WriterOptions      -- ^ Pandoc writer options to modify output
-           -> EntityFilePath a   -- ^
+           -> EntityFilePath a   -- ^ Path to entity ready for conversion, usually text file
            -> Action b
 loadEntity rops wops (EntityFilePath path) =
   subloadEntity rops wops path
@@ -125,7 +125,7 @@ loadEntity rops wops (EntityFilePath path) =
 subloadEntity :: FromJSON b
               => ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
               -> WriterOptions  -- ^ Pandoc writer options to modify output
-              -> FilePath
+              -> FilePath       -- ^ Path to the file ready for conversion
               -> Action b
 subloadEntity rops wops entityPath = do
   let srcPath = destToSrc entityPath -<.> "md"

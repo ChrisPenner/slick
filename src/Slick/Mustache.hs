@@ -7,7 +7,6 @@ import           Development.Shake
 import           Text.Mustache
 import           Text.Mustache.Compile
 
---------------------------------------------------------------------------------
 
 -- | Like 'compileTemplate' but tracks changes to template files and partials
 -- within Shake.

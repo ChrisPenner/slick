@@ -34,6 +34,7 @@ dependencies:
 - time
 - directory
 - extra
+# below required for preview
 - http-types
 - websockets
 - wai

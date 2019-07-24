@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 25ebe4cc12b1de4a226d0fd27441db5e0d6b4d267bd0076715c03821b15c25fd
+-- hash: 81df5100031c71996ee4b74b520977d4bf27b2450ef841e577f1b9b9257c9462
 
 name:           slick
 version:        0.2.0.0
@@ -43,7 +43,6 @@ library
     , base >=4.7 && <5
     , binary
     , bytestring
-    , containers
     , directory
     , extra
     , http-types
@@ -74,7 +73,6 @@ test-suite slick-test
     , base >=4.7 && <5
     , binary
     , bytestring
-    , containers
     , directory
     , extra
     , http-types

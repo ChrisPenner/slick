@@ -29,7 +29,6 @@ dependencies:
 - text
 - binary
 - bytestring
-- containers
 - mustache
 - time
 - directory

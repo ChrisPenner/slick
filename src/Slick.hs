@@ -36,4 +36,4 @@ import           Slick.Build
 import           Slick.Caching
 import           Slick.Mustache
 import           Slick.Pandoc
-import           Text.Mustache  hiding ((~>))
+import           Text.Mustache                     hiding ( (~>) )

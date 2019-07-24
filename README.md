@@ -31,9 +31,9 @@ Here's a quick overview of what Slick can do:
         library and provides cached template rendering with awareness of changes to templates, partials, and Mustache
         objects.
     - It's a thin wrapper so you can still use things like Mustache functions, etc. if you like!
-- Provides only the individual tools without opinions about how to wire them up; if you want to load blog posts from
+- Provides only the individual tools without opinions about how to wire them up; if you want to load blog posts from 
     a database and render them out using Blaze html; well go ahead, we can help with that!
-- Provides caching of arbitrary (JSON serializable) objects using Shake resulting in super-fast rebuild times!
+- Provides caching of arbitrary (JSON serializable) objects using Shake resulting in super-fast rebuild times! 
 
 Another static site generator? What about Hakyll/Jekyll?
 --------------------------------------------------------
@@ -53,7 +53,7 @@ Quick Start
 ---------------
 
 The easiest way to get started is to clone this repo and try out
-the example in the example-site directory.
+the example in the example-site directory. 
 
 You can build the example using Stack by `cd`ing into the directory and running
 `stack build && stack exec example-site-exe site`. This creates a 'dist' folder with the
@@ -105,11 +105,11 @@ main' =
       -- We require each post separately so that Shake can cache them individually
       need (((-<.> "html") . srcToBuild) <$> postPaths)
      -- rule for actually building posts
-    "build/posts//*.html" %> \out -> do
+    "build/posts//*.html" %> \out -> do 
       -- Recover the path where the source file for the post should be
       let srcPath = (dropDirectory1 out) -<.> "md"
       fileContents <- readFile' srcPath
-      -- Load a markdown source file into an Aeson Value
+      -- Load a markdown source file into an Aeson Value 
       -- The 'content' key contains an html-rendered string
       -- Any metadata from a yaml block is loaded into the appropriate keys in the Aeson object
       -- e.g. author, date, tags, etc.

@@ -1,14 +1,24 @@
 name:                slick
-version:             0.1.0.1
+version:             0.2.0.0
 github:              "ChrisPenner/slick"
 license:             BSD3
-author:              "Chris Penner, Michał J. Gajda, Sergey Bushnyak"
+author:              "Chris Penner"
 maintainer:          "example@example.com"
-copyright:           "2018, Chris Penner, 2019, Michał J. Gajda, Sergey Bushnyak"
+copyright:           "2018 Chris Penner"
+
 extra-source-files:
 - README.md
 - ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
 description:         Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
+
 dependencies:
 - base >= 4.7 && < 5
 - shake
@@ -19,28 +29,20 @@ dependencies:
 - text
 - binary
 - bytestring
+- containers
 - mustache
 - time
+- directory
+- extra
 - http-types
 - websockets
 - wai
 - warp
 - wai-app-static
 - wai-websockets >= 3.0.1
-- directory
-- extra
 
 library:
   source-dirs: src
-  exposed-modules:
-    - Slick
-    - Slick.Build
-    - Slick.Pandoc
-    - Slick.Serve
-    - Slick.Utils
-  other-modules:
-    - Slick.Mustache
-    - Slick.Caching
 
 tests:
   slick-test:

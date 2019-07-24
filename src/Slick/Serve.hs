@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Slick.Serve ( runServerStatic
-                   , runServerWS
-                   , wsAppHandler
+module Slick.Serve ( serverStart
+                   , serverStop
+                   , serverHandler
                    ) where
 
 import           Control.Concurrent.MVar
@@ -25,45 +25,14 @@ import qualified Network.WebSockets             as WS
 
 type WSAppState = MVar [WS.Connection]
 
--- | Basic server configuration
---
-runServer :: String               -- ^ Host to bind on
-          -> Int                  -- ^ Port to listen on
-          -> IO ()                -- ^ Blocks forever
-runServer host port = do
-  Warp.runSettings
-    warpSettings $
-    Static.staticApp (Static.defaultFileServerSettings "")
-  where
-    warpSettings =
-      Warp.setLogger noLog
-        $ Warp.setHost (fromString host)
-        $ Warp.setPort port Warp.defaultSettings
-
--- | Run simple Http app for
---   preview local files for generated site
-runServerStatic :: FilePath             -- ^ Directory to serve
-                -> String               -- ^ Host to bind on
-                -> Int                  -- ^ Port to listen on
-                -> IO ()                -- ^ Blocks forever
-runServerStatic directory host port = do
-  Warp.runSettings
-    warpSettings $
-      Static.staticApp (Static.defaultFileServerSettings directory)
-  where
-    warpSettings =
-      Warp.setLogger noLog
-        $ Warp.setHost (fromString host)
-        $ Warp.setPort port Warp.defaultSettings
-
 -- | Run server with Websocket connection
 --   for live reloading
-runServerWS :: FilePath                 -- ^ Directory to serve
-            -> String                   -- ^ Host to bind on
-            -> Int                      -- ^ Port to listen on
+serverStart :: FilePath                               -- ^ Directory to serve
+            -> String                                 -- ^ Host to bind on
+            -> Int                                    -- ^ Port to listen on
             -> (WSAppState -> WS.Connection -> IO ()) -- ^ Websockets handler
             -> IO ()
-runServerWS directory host portWS wsApp = do
+serverStart directory host portWS wsApp = do
   wsState <- newMVar []
   Warp.runSettings
     warpSettings $
@@ -72,13 +41,21 @@ runServerWS directory host portWS wsApp = do
         (WS.acceptRequest >=>                -- App for websocket requests
           \conn -> do
             WS.forkPingThread conn 30
-              >> wsApp wsState conn)
+              >> serverHandler wsState conn)
         (httpApp directory)                  -- App for non-websocket requests
   where
     warpSettings =
       Warp.setLogger noLog
         $ Warp.setHost (fromString host)
         $ Warp.setPort portWS Warp.defaultSettings
+
+-- | Simplistic stop implemented by taking specialized MVar
+--
+serverStop :: MVar ()  -- server stop MVar
+           -> IO ()
+serverStop stmv = do
+  takeMVar stmv
+  return $ ()
 
 -- | Http application
 --
@@ -89,8 +66,8 @@ httpApp directory =
 
 -- | Handler for websocket server to brodcast update query
 --   for all connected browser pages
-wsAppHandler :: WSAppState -> WS.Connection -> IO ()
-wsAppHandler wsState conn = do
+serverHandler :: WSAppState -> WS.Connection -> IO ()
+serverHandler wsState conn = do
   forever $ do
     modifyMVar_ wsState (\l -> return (conn:l))
     l <- readMVar wsState

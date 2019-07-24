@@ -4,16 +4,16 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3b757aa9d122ec2fd03aa6efbc590cce48255b2cdeab0c66a95227acd9290811
+-- hash: 25ebe4cc12b1de4a226d0fd27441db5e0d6b4d267bd0076715c03821b15c25fd
 
 name:           slick
-version:        0.1.0.1
+version:        0.2.0.0
 description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
 homepage:       https://github.com/ChrisPenner/slick#readme
 bug-reports:    https://github.com/ChrisPenner/slick/issues
-author:         Chris Penner, Michał J. Gajda, Sergey Bushnyak
+author:         Chris Penner
 maintainer:     example@example.com
-copyright:      2018, Chris Penner, 2019, Michał J. Gajda, Sergey Bushnyak
+copyright:      2018 Chris Penner
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -29,12 +29,13 @@ library
   exposed-modules:
       Slick
       Slick.Build
+      Slick.Caching
+      Slick.Mustache
       Slick.Pandoc
       Slick.Serve
       Slick.Utils
   other-modules:
-      Slick.Mustache
-      Slick.Caching
+      Paths_slick
   hs-source-dirs:
       src
   build-depends:
@@ -42,6 +43,7 @@ library
     , base >=4.7 && <5
     , binary
     , bytestring
+    , containers
     , directory
     , extra
     , http-types
@@ -72,6 +74,7 @@ test-suite slick-test
     , base >=4.7 && <5
     , binary
     , bytestring
+    , containers
     , directory
     , extra
     , http-types

@@ -5,11 +5,13 @@
 
 module Main where
 
+import           Control.Concurrent
 import           Control.Lens
+import           Control.Monad              (forM_, forever, liftM, mzero, void,
+                                             when)
 import           Data.Aeson                 as A
 import           Data.Aeson.Lens
 import           Data.Function              (on)
-import           Data.List                  (sortBy)
 import           Data.List                  as L (intersperse, sortBy, (\\))
 import           Data.Map                   as M
 import           Data.Monoid
@@ -24,6 +26,7 @@ import           Development.Shake.Util     (shakeArgsPruneWith)
 import           GHC.Generics               (Generic)
 import           Slick
 import           Slick.Build
+import           Slick.Serve
 import           System.Console.GetOpt
 import           System.Directory
 import           System.Directory.Extra     (listFilesRecursive, removeFile)
@@ -52,6 +55,17 @@ flags =
 --   defines workflow to build the webiste
 buildRules :: Foldable t => t Flags -> Rules ()
 buildRules flags = do
+
+  let isPreviewMode = Preview `elem` flags
+  let isWatchMode   = Watch   `elem` flags
+
+  action $ runAfter $ putStrLn "After Build Actions: "
+  when isPreviewMode $ do
+    action $ runAfter $ liftIO $ void . forkIO $ do
+      stopServer <- newEmptyMVar
+      putStrLn $ "Running with Preview"
+      serverStart "public" "127.0.0.1" 3030 serverHandler
+
   postCache <- jsonCache' loadPost
 
   -- Require all the things we need to build the whole site
@@ -92,6 +106,6 @@ main :: IO ()
 main = do
   shakeArgs <- getArgs
   cwd       <- getCurrentDirectory
-  let shOpts  = shakeOptions {shakeVerbosity = Quiet}
+  let shOpts = shakeOptions {shakeVerbosity = Quiet}
 
   runSiteBuilder shOpts flags

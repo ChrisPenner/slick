@@ -1,6 +1,5 @@
 module Slick.Utils
   ( getDirectoryPaths
-  , mseq
   ) where
 
 import           Control.Monad
@@ -30,7 +29,3 @@ getDirectoryPaths extensions dirs =
       getPaths dir =
         fmap (dir </>) <$>
           getDirectoryFiles dir extensions
-
--- | Sequential composition of monadic functions
-mseq :: Monad m => (a -> m b) -> (b -> m c) -> a -> m c
-f `mseq` g =  \x -> f x >>= g

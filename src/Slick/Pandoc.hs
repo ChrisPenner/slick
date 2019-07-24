@@ -59,8 +59,11 @@ markdownToHTML' :: (FromJSON a)
                 -> WriterOptions  -- ^ Pandoc writer options to modify output
                 -> T.Text         -- ^ Text for conversion
                 -> Action a
-markdownToHTML' rops wops txt =
-  mseq (markdownToHTML rops wops) convert txt
+markdownToHTML' rops wops =
+  (markdownToHTML rops wops) >=> convert
+  -- Sequential composition of monadic functions
+  -- that connect markdown converter to JSON serializer
+  -- Monad m => (a -> m b) -> (b -> m c) -> a -> m c
 
 -- | Given a reader from 'Text.Pandoc.Readers' this creates a loader which
 --   given the source document will read its metadata into a 'Value'

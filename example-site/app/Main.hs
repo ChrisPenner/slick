@@ -11,11 +11,12 @@ import           Control.Monad              (forM_, forever, liftM, mzero, void,
                                              when)
 import           Data.Aeson                 as A
 import           Data.Aeson.Lens
+import           Data.Either.Utils
 import           Data.Function              (on)
 import           Data.List                  as L (intersperse, sortBy, (\\))
-import           Data.Map                   as M
+import qualified Data.Map                   as M
 import           Data.Monoid
-import           Data.Set                   as S
+import qualified Data.Set                   as S
 import qualified Data.Text                  as T
 import           Data.Text.Lens
 import           Data.Time
@@ -39,16 +40,16 @@ import           Builder
 -- | List our custom keys that we need to manage additional behaviour
 --
 data Flags =
-    Preview     -- ^ key to run Warp server
-  | Watch       -- ^ watch for changes
+    Preview     -- ^ key to run warp server
+  | Prune       -- ^ run builder from clean slate
   deriving (Eq)
 
 -- | Specific flags for Shake to allow custom keys required for specific logic
 --
-flags :: forall a. [OptDescr (Either a Flags)]
-flags =
-  [ Option "" ["preview"      ] (NoArg $ Right Preview    ) "running as preview"
-  , Option "" ["watch"        ] (NoArg $ Right Watch      ) "running with watch"
+gFlags :: forall a. [OptDescr (Either a Flags)]
+gFlags =
+  [ Option "preview" ["preview"] (NoArg $ Right Preview) "running as preview"
+  , Option "prune"   ["prune"  ] (NoArg $ Right Prune  ) "run with pruner"
   ]
 
 -- | Specific build rules for the Shake system
@@ -57,7 +58,6 @@ buildRules :: Foldable t => t Flags -> Rules ()
 buildRules flags = do
 
   let isPreviewMode = Preview `elem` flags
-  let isWatchMode   = Watch   `elem` flags
 
   action $ runAfter $ putStrLn "After Build Actions: "
   when isPreviewMode $ do
@@ -95,12 +95,22 @@ buildRules flags = do
 --
 runSiteBuilder :: ShakeOptions                     -- ^ Options for the Shake builder
                -> [OptDescr (Either String Flags)] -- ^ Converted CLI arguments
+               -> Bool                             -- ^ Prune version or No
                -> IO ()
-runSiteBuilder shOpts flags =
-  shakeArgsPruneWith shOpts pruner flags $
-   \flags targets -> do
-     let rls = Just $ buildRules flags
-     return $ rls
+runSiteBuilder shOpts flags isPrune = do
+  case isPrune of
+    False ->
+      -- running regular builder
+      shakeArgsWith shOpts flags $
+       \flags targets -> do
+         return $ Just $ buildRules flags
+    True  ->
+      -- running builder from clean state
+     shakeArgsPruneWith shOpts pruner flags $
+       \flags targets -> do
+         let rls = Just $ buildRules flags
+         -- do additional stuff if needed
+         return $ rls
 
 main :: IO ()
 main = do
@@ -108,4 +118,10 @@ main = do
   cwd       <- getCurrentDirectory
   let shOpts = shakeOptions {shakeVerbosity = Quiet}
 
-  runSiteBuilder shOpts flags
+  -- Convert provided flags to Shake compatible by hand
+  -- to understand `--prune` option before running shake build
+  let (flags, files, errors) = getOpt RequireOrder gFlags shakeArgs
+      flags' = map fromEither flags
+      isPrune = Prune `elem` flags'
+
+  runSiteBuilder shOpts gFlags isPrune

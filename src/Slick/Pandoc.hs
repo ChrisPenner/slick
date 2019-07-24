@@ -60,7 +60,7 @@ markdownToHTML' :: (FromJSON a)
                 -> T.Text         -- ^ Text for conversion
                 -> Action a
 markdownToHTML' rops wops =
-  (markdownToHTML rops wops) >=> convert
+  markdownToHTML rops wops >=> convert
   -- Sequential composition of monadic functions
   -- that connect markdown converter to JSON serializer
   -- Monad m => (a -> m b) -> (b -> m c) -> a -> m c

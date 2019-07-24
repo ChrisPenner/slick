@@ -40,16 +40,16 @@ import           Builder
 -- | List our custom keys that we need to manage additional behaviour
 --
 data Flags =
-    Preview     -- ^ key to run warp server
-  | Prune       -- ^ run builder from clean slate
+    Preview         -- ^ key to run warp server
+--  | SomeOtherFlag -- ^ run builder from clean slate
   deriving (Eq)
 
 -- | Specific flags for Shake to allow custom keys required for specific logic
 --
 gFlags :: forall a. [OptDescr (Either a Flags)]
 gFlags =
-  [ Option "preview" ["preview"] (NoArg $ Right Preview) "running as preview"
-  , Option "prune"   ["prune"  ] (NoArg $ Right Prune  ) "run with pruner"
+  [ Option "L" ["preview"] (NoArg $ Right Preview) "running as preview"
+--  , Option "someotherflag"   ["someotherflag"  ] (NoArg $ Right SomeOtherFlag  ) "run with some other flag"
   ]
 
 -- | Specific build rules for the Shake system
@@ -57,14 +57,14 @@ gFlags =
 buildRules :: Foldable t => t Flags -> Rules ()
 buildRules flags = do
 
-  let isPreviewMode = Preview `elem` flags
+  -- let isPreviewMode = Preview `elem` flags
 
-  action $ runAfter $ putStrLn "After Build Actions: "
-  when isPreviewMode $ do
-    action $ runAfter $ liftIO $ void . forkIO $ do
-      stopServer <- newEmptyMVar
-      putStrLn $ "Running with Preview"
-      serverStart "public" "127.0.0.1" 3030 serverHandler
+  -- action $ runAfter $ putStrLn "After Build Actions: "
+  -- when isPreviewMode $ do
+  --   action $ runAfter $ liftIO $ void . forkIO $ do
+  --     stopServer <- newEmptyMVar
+  --     putStrLn $ "Running with Preview"
+  --     serverStart "public" "127.0.0.1" 3030 serverHandler
 
   postCache <- jsonCache' loadPost
 
@@ -90,38 +90,36 @@ buildRules flags = do
   -- rule for actually building posts
   "dist/posts//*.html" %> buildPost postCache
 
+  want ["site"]
+
 
 -- | Function to start custom Shake pipeline for execution
 --
 runSiteBuilder :: ShakeOptions                     -- ^ Options for the Shake builder
                -> [OptDescr (Either String Flags)] -- ^ Converted CLI arguments
-               -> Bool                             -- ^ Prune version or No
                -> IO ()
-runSiteBuilder shOpts flags isPrune = do
-  case isPrune of
-    False ->
-      -- running regular builder
-      shakeArgsWith shOpts flags $
-       \flags targets -> do
-         return $ Just $ buildRules flags
-    True  ->
-      -- running builder from clean state
-     shakeArgsPruneWith shOpts pruner flags $
-       \flags targets -> do
-         let rls = Just $ buildRules flags
-         -- do additional stuff if needed
-         return $ rls
+runSiteBuilder shOpts flags =
+  -- running builder from clean state
+  shakeArgsPruneWith shOpts (pruner "dist") flags $
+    \flags targets -> do
+      let rls = Just $ buildRules flags
+      -- do additional stuff if needed
+      return $ rls
 
 main :: IO ()
 main = do
-  shakeArgs <- getArgs
-  cwd       <- getCurrentDirectory
-  let shOpts = shakeOptions {shakeVerbosity = Quiet}
+  shakeArgsRaw <- getArgs
+  cwd          <- getCurrentDirectory
+
+  let shakeArgs = shakeArgsRaw ++ ["--prune"] -- add prune option by default
+      shOpts    = shakeOptions {shakeVerbosity = Chatty}
 
   -- Convert provided flags to Shake compatible by hand
-  -- to understand `--prune` option before running shake build
+  -- to understand special flags you need to handle
+  -- before forwarding to Shake builder
   let (flags, files, errors) = getOpt RequireOrder gFlags shakeArgs
       flags' = map fromEither flags
-      isPrune = Prune `elem` flags'
 
-  runSiteBuilder shOpts gFlags isPrune
+  runSiteBuilder shOpts gFlags
+
+--

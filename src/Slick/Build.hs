@@ -73,9 +73,9 @@ flattenMeta (Meta meta) = toJSON $ fmap go meta
 
 -- | Remove all files that are in the target directory,
 --   but not in the `shake` rules.
-pruner :: [FilePath] -> IO ()
-pruner listOfFiles = do
-  present <- listFilesRecursive "public"
+pruner :: FilePath -> [FilePath] -> IO ()
+pruner root listOfFiles = do
+  present <- listFilesRecursive root
   let listOfFilesToRemove = (toStandard <$> present) L.\\ (toStandard <$> listOfFiles)
       removedFiles = show listOfFilesToRemove
   mapM_ removeFile listOfFilesToRemove

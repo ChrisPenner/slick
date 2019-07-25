@@ -56,15 +56,18 @@ gFlags =
 --   defines workflow to build the webiste
 buildRules :: Foldable t => t Flags -> Rules ()
 buildRules flags = do
+  let isPreviewMode = Preview `elem` flags
 
-  -- let isPreviewMode = Preview `elem` flags
+  action $ runAfter $ putStrLn "After Build Actions: "
+  when isPreviewMode $ do
+    action $ runAfter $ liftIO $ do
+      th <- forkIO $ do
+        stopServer <- newEmptyMVar
+        putStrLn $ "Running with Preview"
+        serverStart "dist" "127.0.0.1" 3030 serverHandler
 
-  -- action $ runAfter $ putStrLn "After Build Actions: "
-  -- when isPreviewMode $ do
-  --   action $ runAfter $ liftIO $ void . forkIO $ do
-  --     stopServer <- newEmptyMVar
-  --     putStrLn $ "Running with Preview"
-  --     serverStart "public" "127.0.0.1" 3030 serverHandler
+      forever $
+        threadDelay 100000
 
   postCache <- jsonCache' loadPost
 

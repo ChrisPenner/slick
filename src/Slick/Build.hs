@@ -10,6 +10,7 @@ module Slick.Build
   , flattenMeta
   , pruner
   , EntityFilePath(..)
+  , shakeArgsPruneAlwaysWith
   ) where
 
 import           Control.Lens
@@ -17,16 +18,21 @@ import           Control.Monad
 import           Data.Aeson
 import           Data.Aeson.Lens
 import           Data.List                  as L (intersperse, sortBy, (\\))
+import           Data.Maybe
 import           Data.Monoid
 import qualified Data.Text                  as T
 import           Development.Shake
 import           Development.Shake.Classes
 import           Development.Shake.FilePath
 import           GHC.Generics               hiding (Meta)
+import           System.Console.GetOpt
 import           System.Directory.Extra     (listFilesRecursive, removeFile)
+import           System.IO.Extra            as IO
 import           Text.Pandoc
 import           Text.Pandoc.Highlighting
 import           Text.Pandoc.Shared
+
+import           Slick.Utils
 
 --------------------------------------------------------------------------------
 
@@ -70,6 +76,20 @@ flattenMeta (Meta meta) = toJSON $ fmap go meta
   go (MetaBlocks  m) = toJSON $ stringify m
 
 --------------------------------------------------------------------------------
+
+-- | A version of 'shakeArgsPrunWith' that always do prune at the end.
+shakeArgsPruneAlwaysWith :: ShakeOptions
+                         -> ([FilePath] -> IO ())
+                         -> [OptDescr (Either String a)] -> ([a] -> [String] -> IO (Maybe (Rules ())))
+                         -> IO ()
+shakeArgsPruneAlwaysWith opts prune flags act = do
+  let flags2 = map (fmapFmapOptDescr Just) flags
+  IO.withTempFile $ \file -> do
+    shakeArgsWith opts { shakeLiveFiles = file : shakeLiveFiles opts } flags2 $
+      \opts args ->
+        act (catMaybes opts) args
+    src <- lines <$> IO.readFile' file
+    prune src
 
 -- | Remove all files that are in the target directory,
 --   but not in the `shake` rules.

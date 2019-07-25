@@ -25,7 +25,6 @@ import           Text.Pandoc
 import           Text.Pandoc.Shared
 
 import           Slick.Build
-import           Slick.Utils
 
 --------------------------------------------------------------------------------
 

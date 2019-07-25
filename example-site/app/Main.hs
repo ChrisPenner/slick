@@ -41,16 +41,16 @@ import           Builder
 -- | List our custom keys that we need to manage additional behaviour
 --
 data Flags =
-    Preview         -- ^ key to run warp server
---  | SomeOtherFlag -- ^ run builder from clean slate
+    Preview     -- ^ key to run warp server
+--  | OtherFlag -- ^ run builder from clean slate
   deriving (Eq)
 
 -- | Specific flags for Shake to allow custom keys required for specific logic
 --
 gFlags :: forall a. [OptDescr (Either a Flags)]
 gFlags =
-  [ Option "L" ["preview"] (NoArg $ Right Preview) "running as preview"
---  , Option "someotherflag"   ["someotherflag"  ] (NoArg $ Right SomeOtherFlag  ) "run with some other flag"
+  [ Option "P" ["preview"] (NoArg $ Right Preview) "running as preview"
+--, Option "O" ["OtherFlag"] (NoArg $ Right OtherFlag  ) "run with some other flag"
   ]
 
 -- | Specific build rules for the Shake system
@@ -69,7 +69,8 @@ buildRules flags = do
       forever $
         threadDelay 100000
 
-  -- Sequential Shake rules to prepare website
+  -- Site specific Shake rules that
+  -- define steps to build output website
 
   postCache <- jsonCache' loadPost
 

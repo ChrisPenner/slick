@@ -10,7 +10,7 @@ module Slick.Build
   , flattenMeta
   , pruner
   , EntityFilePath(..)
-  , shakeArgsPruneAlwaysWith
+  , shakeArgsAlwaysPruneWith
   ) where
 
 import           Control.Lens
@@ -78,11 +78,11 @@ flattenMeta (Meta meta) = toJSON $ fmap go meta
 --------------------------------------------------------------------------------
 
 -- | A version of 'shakeArgsPrunWith' that always do prune at the end.
-shakeArgsPruneAlwaysWith :: ShakeOptions
+shakeArgsAlwaysPruneWith :: ShakeOptions
                          -> ([FilePath] -> IO ())
                          -> [OptDescr (Either String a)] -> ([a] -> [String] -> IO (Maybe (Rules ())))
                          -> IO ()
-shakeArgsPruneAlwaysWith opts prune flags act = do
+shakeArgsAlwaysPruneWith opts prune flags act = do
   let flags2 = map (fmapFmapOptDescr Just) flags
   IO.withTempFile $ \file -> do
     shakeArgsWith opts { shakeLiveFiles = file : shakeLiveFiles opts } flags2 $

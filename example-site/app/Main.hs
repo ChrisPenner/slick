@@ -105,7 +105,7 @@ runSiteBuilder :: ShakeOptions                     -- ^ Options for the Shake bu
                -> IO ()
 runSiteBuilder shOpts flags =
   -- running builder from clean state
-  shakeArgsPruneAlwaysWith shOpts (pruner "dist") flags $
+  shakeArgsAlwaysPruneWith shOpts (pruner "dist") flags $
     \flags targets -> do
       let rls = Just $ buildRules flags
       -- do additional stuff if needed

@@ -37,7 +37,9 @@ executables:
     - pandoc
     - text
     - binary
-    - bytestring
     - containers
     - mustache
     - time
+    - MissingH
+    - directory
+    - extra

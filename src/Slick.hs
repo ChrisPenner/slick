@@ -15,8 +15,6 @@ module Slick
   , makePandocReader'
   , loadUsing
   , loadUsing'
-  , markdownOptions
-  , html5Options
 
   -- ** Aeson
   , convert
@@ -32,7 +30,8 @@ module Slick
   )
 where
 
+import           Slick.Build
 import           Slick.Caching
 import           Slick.Mustache
 import           Slick.Pandoc
-import           Text.Mustache                     hiding ( (~>) )
+import           Text.Mustache  hiding ((~>))

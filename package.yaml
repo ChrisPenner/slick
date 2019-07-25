@@ -29,9 +29,17 @@ dependencies:
 - text
 - binary
 - bytestring
-- containers
 - mustache
 - time
+- directory
+- extra
+# below required for preview
+- http-types
+- websockets
+- wai
+- warp
+- wai-app-static
+- wai-websockets >= 3.0.1
 
 library:
   source-dirs: src

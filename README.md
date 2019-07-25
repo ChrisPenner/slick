@@ -25,7 +25,7 @@ Here's a quick overview of what Slick can do:
     -   Write your blog posts in Markdown or LaTeX and render it to
         syntax-highlighted HTML!
     -   Slick processes Pandoc (and LaTeX) metadata into a usable form (as an
-        Aeson Value object) which you can manipulate as you please.
+        [Aeson](https://hackage.haskell.org/package/aeson) Value object) which you can manipulate as you please.
 - Slick provides combinators for rendering [Mustache templates](https://mustache.github.io/)
     - Slick wraps Justus Adam's [Mustache](http://hackage.haskell.org/package/mustache-2.3.0/docs/Text-Mustache.html)
         library and provides cached template rendering with awareness of changes to templates, partials, and Mustache

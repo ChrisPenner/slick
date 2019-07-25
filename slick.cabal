@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3cc544477064cc4c1a83dee37ce64b9559692a238162f8704a62c1fb10265bed
+-- hash: 81df5100031c71996ee4b74b520977d4bf27b2450ef841e577f1b9b9257c9462
 
 name:           slick
 version:        0.2.0.0
@@ -28,9 +28,12 @@ source-repository head
 library
   exposed-modules:
       Slick
+      Slick.Build
       Slick.Caching
       Slick.Mustache
       Slick.Pandoc
+      Slick.Serve
+      Slick.Utils
   other-modules:
       Paths_slick
   hs-source-dirs:
@@ -40,7 +43,9 @@ library
     , base >=4.7 && <5
     , binary
     , bytestring
-    , containers
+    , directory
+    , extra
+    , http-types
     , lens
     , lens-aeson
     , mustache
@@ -48,6 +53,11 @@ library
     , shake
     , text
     , time
+    , wai
+    , wai-app-static
+    , wai-websockets >=3.0.1
+    , warp
+    , websockets
   default-language: Haskell2010
 
 test-suite slick-test
@@ -63,7 +73,9 @@ test-suite slick-test
     , base >=4.7 && <5
     , binary
     , bytestring
-    , containers
+    , directory
+    , extra
+    , http-types
     , lens
     , lens-aeson
     , mustache
@@ -72,4 +84,9 @@ test-suite slick-test
     , slick
     , text
     , time
+    , wai
+    , wai-app-static
+    , wai-websockets >=3.0.1
+    , warp
+    , websockets
   default-language: Haskell2010

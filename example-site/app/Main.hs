@@ -1,130 +1,121 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NamedFieldPuns        #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 module Main where
 
-import Control.Lens
-import Data.Aeson as A
-import Data.Aeson.Lens
-import Data.Function (on)
-import Data.List (sortBy)
-import Data.Map as M
-import Data.Monoid
-import Data.Set as S
-import qualified Data.Text as T
-import Data.Text.Lens
-import Data.Time
-import Development.Shake
-import Development.Shake.Classes
-import Development.Shake.FilePath
-import GHC.Generics (Generic)
-import Slick
+import           Control.Concurrent
+import           Control.Lens
+import           Control.Monad              (forM_, forever, liftM, mzero, void,
+                                             when)
+import           Data.Aeson                 as A
+import           Data.Aeson.Lens
+import           Data.Either.Utils
+import           Data.Function              (on)
+import           Data.List                  as L (intercalate, intersperse,
+                                                  sortBy, (\\))
+import qualified Data.Map                   as M
+import           Data.Monoid
+import qualified Data.Set                   as S
+import qualified Data.Text                  as T
+import           Data.Text.Lens
+import           Data.Time
+import           Development.Shake
+import           Development.Shake.Classes
+import           Development.Shake.FilePath
+import           Development.Shake.Util     (shakeArgsPruneWith)
+import           GHC.Generics               (Generic)
+import           Slick
+import           Slick.Build
+import           Slick.Serve
+import           System.Console.GetOpt
+import           System.Directory
+import           System.Directory.Extra     (listFilesRecursive, removeFile)
+import           System.Environment
+
+import           Builder
+
+--------------------------------------------------------------------------------
+
+-- | List our custom keys that we need to manage additional behaviour
+--
+data Flags =
+    Preview     -- ^ key to run warp server
+--  | OtherFlag -- ^ run builder from clean slate
+  deriving (Eq)
+
+-- | Specific flags for Shake to allow custom keys required for specific logic
+--
+gFlags :: forall a. [OptDescr (Either a Flags)]
+gFlags =
+  [ Option "P" ["preview"] (NoArg $ Right Preview) "running as preview"
+--, Option "O" ["OtherFlag"] (NoArg $ Right OtherFlag  ) "run with some other flag"
+  ]
+
+-- | Specific build rules for the Shake system
+--   defines workflow to build the webiste
+buildRules :: Foldable t => t Flags -> Rules ()
+buildRules flags = do
+  let isPreviewMode = Preview `elem` flags
+  action $ runAfter $ putStrLn "After Build Actions: "
+  when isPreviewMode $ do
+    action $ runAfter $ liftIO $ do
+      th <- forkIO $ do
+        stopServer <- newEmptyMVar
+        putStrLn $ "Running with Preview"
+        serverStart "dist" "127.0.0.1" 3030 serverHandler
+
+      forever $
+        threadDelay 100000
+
+  -- Site specific Shake rules that
+  -- define steps to build output website
+
+  postCache <- jsonCache' loadPost
+
+  -- Require all the things we need to build the whole site
+  "site" ~> need ["static", "posts", "dist/index.html"]
+
+  -- Require all static assets
+  "static" ~> do
+    staticFiles <-
+      getDirectoryFiles "." ["site/css//*", "site/js//*", "site/images//*"]
+    need (("dist" </>) . dropDirectory1 <$> staticFiles)
+
+  -- Rule for handling static assets, just copy them from source to dest
+  ["dist/css//*", "dist/js//*", "dist/images//*"] |%> \out -> do
+    copyFileChanged ("site" </> dropDirectory1 out) out
+
+    -- Find and require every post to be built
+  "posts" ~> requirePosts
+
+  -- build the main table of contents
+  "dist/index.html" %> buildIndex postCache
+
+  -- rule for actually building posts
+  "dist/posts//*.html" %> buildPost postCache
+
+  -- required to build `dist`
+  want ["site"]
+
+-- | Function to start custom Shake pipeline for execution
+runSiteBuilder :: ShakeOptions                     -- ^ Options for the Shake builder
+               -> [OptDescr (Either String Flags)] -- ^ Converted CLI arguments
+               -> IO ()
+runSiteBuilder shOpts flags =
+  -- running builder from clean state
+  shakeArgsAlwaysPruneWith shOpts (pruner "dist") flags $
+    \flags targets -> do
+      let rls = Just $ buildRules flags
+      -- do additional stuff if needed
+      return $ rls
 
 main :: IO ()
-main =
-  shakeArgs shakeOptions {shakeVerbosity = Chatty} $
-    -- Set up caches
-   do
-    postCache <- jsonCache' loadPost
-    -- Require all the things we need to build the whole site
-    "site" ~> need ["static", "posts", "dist/index.html"]
-    -- Require all static assets
-    "static" ~> do
-      staticFiles <-
-        getDirectoryFiles "." ["site/css//*", "site/js//*", "site/images//*"]
-      need (("dist" </>) . dropDirectory1 <$> staticFiles)
-    -- Rule for handling static assets, just copy them from source to dest
-    ["dist/css//*", "dist/js//*", "dist/images//*"] |%> \out -> do
-      copyFileChanged ("site" </> dropDirectory1 out) out
-     -- Find and require every post to be built
-    "posts" ~> requirePosts
-    -- build the main table of contents
-    "dist/index.html" %> buildIndex postCache
-     -- rule for actually building posts
-    "dist/posts//*.html" %> buildPost postCache
+main = do
+  shakeArgsRaw <- getArgs
+  cwd          <- getCurrentDirectory
 
--- | Represents the template dependencies of the index page
-data IndexInfo = IndexInfo
-  { posts :: [Post]
-  } deriving (Generic, Show)
+  let shOpts = shakeOptions { shakeVerbosity = Chatty}
 
-instance FromJSON IndexInfo
-
-instance ToJSON IndexInfo
-
--- | A JSON serializable representation of a post's metadata
-data Post = Post
-  { title :: String
-  , author :: String
-  , content :: String
-  , url :: String
-  , date :: String
-  , image :: Maybe String
-  } deriving (Generic, Eq, Ord, Show)
-
-instance FromJSON Post
-
-instance ToJSON Post
-
-
--- A simple wrapper data-type which implements 'ShakeValue'; 
--- Used as a Shake Cache key to build a cache of post objects.
-newtype PostFilePath =
-  PostFilePath String
-  deriving (Show, Eq, Hashable, Binary, NFData)
-
--- | Discover all available post source files
-postNames :: Action [FilePath]
-postNames = getDirectoryFiles "." ["site/posts//*.md"]
-
--- | convert 'build' filepaths into source file filepaths
-destToSrc :: FilePath -> FilePath
-destToSrc p = "site" </> dropDirectory1 p
-
--- | convert source filepaths into build filepaths
-srcToDest :: FilePath -> FilePath
-srcToDest p = "dist" </> dropDirectory1 p
-
--- | convert a source file path into a URL
-srcToURL :: FilePath -> String
-srcToURL = ("/" ++) . dropDirectory1 . (-<.> ".html")
-
--- | Given a post source-file's file path as a cache key, load the Post object
--- for it. This is used with 'jsonCache' to provide post caching.
-loadPost :: PostFilePath -> Action Post
-loadPost (PostFilePath postPath) = do
-  let srcPath = destToSrc postPath -<.> "md"
-  postData <- readFile' srcPath >>= markdownToHTML . T.pack
-  let postURL = T.pack . srcToURL $ postPath
-      withURL = _Object . at "url" ?~ String postURL
-      withSrc = _Object . at "srcPath" ?~ String (T.pack srcPath)
-  convert . withSrc . withURL $ postData
-
--- | given a cache of posts this will build a table of contents
-buildIndex :: (PostFilePath -> Action Post) -> FilePath -> Action ()
-buildIndex postCache out = do
-  posts <- postNames >>= traverse (postCache . PostFilePath)
-  indexT <- compileTemplate' "site/templates/index.html"
-  let indexInfo = IndexInfo {posts}
-      indexHTML = T.unpack $ substitute indexT (toJSON indexInfo)
-  writeFile' out indexHTML
-
--- | Find all post source files and tell shake to build the corresponding html
--- pages.
-requirePosts :: Action ()
-requirePosts = do
-  pNames <- postNames
-  need ((\p -> srcToDest p -<.> "html") <$> pNames)
-
--- Build an html file for a given post given a cache of posts.
-buildPost :: (PostFilePath -> Action Post) -> FilePath -> Action ()
-buildPost postCache out = do
-  let srcPath = destToSrc out -<.> "md"
-      postURL = srcToURL srcPath
-  post <- postCache (PostFilePath srcPath)
-  template <- compileTemplate' "site/templates/post.html"
-  writeFile' out . T.unpack $ substitute template (toJSON post)
+  runSiteBuilder shOpts gFlags

@@ -57,7 +57,6 @@ gFlags =
 buildRules :: Foldable t => t Flags -> Rules ()
 buildRules flags = do
   let isPreviewMode = Preview `elem` flags
-
   action $ runAfter $ putStrLn "After Build Actions: "
   when isPreviewMode $ do
     action $ runAfter $ liftIO $ do
@@ -68,6 +67,8 @@ buildRules flags = do
 
       forever $
         threadDelay 100000
+
+  -- Sequential Shake rules to prepare website
 
   postCache <- jsonCache' loadPost
 
@@ -93,11 +94,10 @@ buildRules flags = do
   -- rule for actually building posts
   "dist/posts//*.html" %> buildPost postCache
 
+  -- required to build `dist`
   want ["site"]
 
-
 -- | Function to start custom Shake pipeline for execution
---
 runSiteBuilder :: ShakeOptions                     -- ^ Options for the Shake builder
                -> [OptDescr (Either String Flags)] -- ^ Converted CLI arguments
                -> IO ()
@@ -124,5 +124,3 @@ main = do
       flags' = map fromEither flags
 
   runSiteBuilder shOpts gFlags
-
---

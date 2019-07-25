@@ -13,7 +13,8 @@ import           Data.Aeson                 as A
 import           Data.Aeson.Lens
 import           Data.Either.Utils
 import           Data.Function              (on)
-import           Data.List                  as L (intersperse, sortBy, (\\))
+import           Data.List                  as L (intercalate, intersperse,
+                                                  sortBy, (\\))
 import qualified Data.Map                   as M
 import           Data.Monoid
 import qualified Data.Set                   as S
@@ -103,7 +104,7 @@ runSiteBuilder :: ShakeOptions                     -- ^ Options for the Shake bu
                -> IO ()
 runSiteBuilder shOpts flags =
   -- running builder from clean state
-  shakeArgsPruneWith shOpts (pruner "dist") flags $
+  shakeArgsPruneAlwaysWith shOpts (pruner "dist") flags $
     \flags targets -> do
       let rls = Just $ buildRules flags
       -- do additional stuff if needed
@@ -114,13 +115,6 @@ main = do
   shakeArgsRaw <- getArgs
   cwd          <- getCurrentDirectory
 
-  let shakeArgs = shakeArgsRaw ++ ["--prune"] -- add prune option by default
-      shOpts    = shakeOptions {shakeVerbosity = Chatty}
-
-  -- Convert provided flags to Shake compatible by hand
-  -- to understand special flags you need to handle
-  -- before forwarding to Shake builder
-  let (flags, files, errors) = getOpt RequireOrder gFlags shakeArgs
-      flags' = map fromEither flags
+  let shOpts = shakeOptions { shakeVerbosity = Chatty}
 
   runSiteBuilder shOpts gFlags

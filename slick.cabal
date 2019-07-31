@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 81df5100031c71996ee4b74b520977d4bf27b2450ef841e577f1b9b9257c9462
+-- hash: 83f6d268198aa63b922a2811c20c6e185e74b12c275df3e3faa1113915dff26e
 
 name:           slick
 version:        0.2.0.0
@@ -32,7 +32,6 @@ library
       Slick.Caching
       Slick.Mustache
       Slick.Pandoc
-      Slick.Serve
       Slick.Utils
   other-modules:
       Paths_slick

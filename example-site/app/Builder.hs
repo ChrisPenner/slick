@@ -54,15 +54,15 @@ import           Types
 --   the corresponding html pages.
 requirePosts :: Action ()
 requirePosts = do
-  pNames <- postNames
-  need ((\p -> srcToDest "dist" p -<.> "html") <$> pNames)
+  pPaths <- postPaths
+  need ((\p -> srcToDest "dist" p -<.> "html") <$> pPaths)
 
 --------------------------------------------------------------------------------
 -- FilePaths loaders
 
 -- | Discover all available post source files
-postNames :: Action [FilePath]
-postNames = getDirectoryFiles "." ["site/posts//*.md"]
+postPaths :: Action [FilePath]
+postPaths = getDirectoryFiles "." ["site/posts//*.md"]
 
 --------------------------------------------------------------------------------
 -- Page Loaders
@@ -84,7 +84,7 @@ loadPost (PostFilePath postPath) = do
 -- | given a cache of posts this will build a table of contents
 buildIndex :: (PostFilePath -> Action Post) -> FilePath -> Action ()
 buildIndex postCache out = do
-  posts <- postNames >>= traverse (postCache . PostFilePath)
+  posts <- postPaths >>= traverse (postCache . PostFilePath)
   indexT <- compileTemplate' "site/templates/index.html"
   let indexInfo = IndexInfo {posts}
       indexHTML = T.unpack $ substitute indexT (toJSON indexInfo)

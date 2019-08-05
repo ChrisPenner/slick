@@ -41,15 +41,19 @@ newtype EntityFilePath a =
   EntityFilePath String
    deriving (Show, Eq,  Generic, Hashable, Binary, NFData)
 
--- | convert 'build' filepaths into source file filepaths
-destToSrc :: FilePath -> FilePath
-destToSrc p = "site" </> dropDirectory1 p
+-- | Convert 'build' filepaths into source file filepaths
+destToSrc :: FilePath  -- ^ input directory "site"
+          -> FilePath
+          -> FilePath
+destToSrc i p = i </> dropDirectory1 p
 
--- | convert source filepaths into build filepaths
-srcToDest :: FilePath -> FilePath
-srcToDest p = "dist" </> dropDirectory1 p
+-- | Convert source filepaths into build filepaths
+srcToDest :: FilePath  -- ^ input directory, "dist"
+          -> FilePath  -- ^
+          -> FilePath  -- ^
+srcToDest i p = i </> dropDirectory1 p
 
--- | convert a source file path into a URL
+-- | Convert a source file path into a URL
 srcToURL :: FilePath -> String
 srcToURL = ("/" ++) . dropDirectory1 . (-<.> ".html")
 

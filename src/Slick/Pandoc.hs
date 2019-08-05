@@ -117,20 +117,22 @@ loadUsing' reader writer text =
 loadEntity :: FromJSON b
            => ReaderOptions      -- ^ Pandoc reader options to specify extensions or other functionality
            -> WriterOptions      -- ^ Pandoc writer options to modify output
+           -> FilePath           -- ^ Source directory
            -> EntityFilePath a   -- ^ Path to entity ready for conversion, usually text file
            -> Action b
-loadEntity rops wops (EntityFilePath path) =
-  subloadEntity rops wops path
+loadEntity rops wops inDir (EntityFilePath path) =
+  subloadEntity rops wops inDir path
 
 -- | Helper functiona for generalized `loadEntity`
 --   provides conversion from source to output file format
 subloadEntity :: FromJSON b
               => ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
               -> WriterOptions  -- ^ Pandoc writer options to modify output
+              -> FilePath       -- ^ Directory with files
               -> FilePath       -- ^ Path to the file ready for conversion
               -> Action b
-subloadEntity rops wops entityPath = do
-  let srcPath = destToSrc entityPath -<.> "md"
+subloadEntity rops wops dir entityPath = do
+  let srcPath = destToSrc dir entityPath -<.> "md"
   entityData <- readFile' srcPath >>= markdownToHTML rops wops . T.pack
   let entityURL = T.pack  . srcToURL $ entityPath
       withURL = _Object . at "url"     ?~ String entityURL

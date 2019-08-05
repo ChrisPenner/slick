@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE DuplicateRecordFields     #-}
-{-# LANGUAGE NamedFieldPuns            #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE Rank2Types                #-}
@@ -84,9 +83,9 @@ loadPost (PostFilePath postPath) = do
 -- | given a cache of posts this will build a table of contents
 buildIndex :: (PostFilePath -> Action Post) -> FilePath -> Action ()
 buildIndex postCache out = do
-  posts <- postPaths >>= traverse (postCache . PostFilePath)
+  posts' <- postPaths >>= traverse (postCache . PostFilePath)
   indexT <- compileTemplate' "site/templates/index.html"
-  let indexInfo = IndexInfo {posts}
+  let indexInfo = IndexInfo {posts = posts'}
       indexHTML = T.unpack $ substitute indexT (toJSON indexInfo)
   writeFile' out indexHTML
 

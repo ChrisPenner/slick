@@ -55,7 +55,7 @@ import           Types
 requirePosts :: Action ()
 requirePosts = do
   pNames <- postNames
-  need ((\p -> srcToDest p -<.> "html") <$> pNames)
+  need ((\p -> srcToDest "dist" p -<.> "html") <$> pNames)
 
 --------------------------------------------------------------------------------
 -- FilePaths loaders
@@ -71,7 +71,7 @@ postNames = getDirectoryFiles "." ["site/posts//*.md"]
 -- for it. This is used with 'jsonCache' to provide post caching.
 loadPost :: PostFilePath -> Action Post
 loadPost (PostFilePath postPath) = do
-  let srcPath = destToSrc postPath -<.> "md"
+  let srcPath = destToSrc "site" postPath -<.> "md"
   postData <- readFile' srcPath >>= markdownToHTML markdownOptions html5Options . T.pack
   let postURL = T.pack . srcToURL $ postPath
       withURL = _Object . at "url" ?~ String postURL
@@ -93,7 +93,7 @@ buildIndex postCache out = do
 -- Build an html file for a given post given a cache of posts.
 buildPost :: (PostFilePath -> Action Post) -> FilePath -> Action ()
 buildPost postCache out = do
-  let srcPath = destToSrc out -<.> "md"
+  let srcPath = destToSrc "site" out -<.> "md"
       postURL = srcToURL srcPath
   post <- postCache (PostFilePath srcPath)
   template <- compileTemplate' "site/templates/post.html"

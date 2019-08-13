@@ -6,6 +6,7 @@ module Slick.Utils
 import           Control.Monad
 import           Data.List                  (intersperse, sortBy)
 import           Data.List                  as L (intersperse, sortBy, (\\))
+import           Data.List                  as L (intersperse, sortBy, (\\))
 import           Data.Ord                   (comparing)
 import qualified Data.Text                  as T
 import           Data.Time

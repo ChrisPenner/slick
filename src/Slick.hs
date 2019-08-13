@@ -15,6 +15,8 @@ module Slick
   , makePandocReader'
   , loadUsing
   , loadUsing'
+  , defaultMarkdownOptions
+  , defaultHtml5Options
 
   -- ** Aeson
   , convert
@@ -24,13 +26,14 @@ module Slick
   , simpleJsonCache'
   , jsonCache
   , jsonCache'
+  , shakeArgsAlwaysPruneWith
+  , pruner
 
   -- ** Re-exported
   , module Text.Mustache
   )
 where
 
-import           Slick.Build
 import           Slick.Caching
 import           Slick.Mustache
 import           Slick.Pandoc

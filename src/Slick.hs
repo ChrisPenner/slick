@@ -15,8 +15,8 @@ module Slick
   , makePandocReader'
   , loadUsing
   , loadUsing'
-  , markdownOptions
-  , html5Options
+  , defaultMarkdownOptions
+  , defaultHtml5Options
 
   -- ** Aeson
   , convert
@@ -26,6 +26,11 @@ module Slick
   , simpleJsonCache'
   , jsonCache
   , jsonCache'
+  , shakeArgsAlwaysPruneWith
+  , pruner
+
+  -- ** Utils
+  , getDirectoryPaths
 
   -- ** Re-exported
   , module Text.Mustache
@@ -35,4 +40,5 @@ where
 import           Slick.Caching
 import           Slick.Mustache
 import           Slick.Pandoc
-import           Text.Mustache                     hiding ( (~>) )
+import           Slick.Utils
+import           Text.Mustache  hiding ((~>))

@@ -1,22 +1,39 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeFamilies               #-}
 
 module Slick.Caching
   ( simpleJsonCache
   , simpleJsonCache'
   , jsonCache
   , jsonCache'
+  , shakeArgsAlwaysPruneWith
+  , pruner
   )
 where
 
-import           Data.Aeson                    as A
+import           Control.Lens
+import           Control.Monad
+import           Data.Aeson                 as A
+import           Data.Aeson.Lens
 import           Data.ByteString.Lazy
-import           Development.Shake                 hiding ( Resource )
+import           Data.List                  as L (intersperse, sortBy, (\\))
+import           Data.Maybe
+import           Data.Monoid
+import qualified Data.Text                  as T
+import           Development.Shake          hiding (Resource)
+import           Development.Shake
 import           Development.Shake.Classes
-import           GHC.Generics                             ( Generic )
+import           Development.Shake.FilePath
+import           GHC.Generics               (Generic)
+import           System.Console.GetOpt
+import           System.Directory.Extra
+import           System.IO.Extra            as IO
 
+import           Slick.Utils                as Utils
+
+--------------------------------------------------------------------------------
 
 newtype CacheQuery q =
   CacheQuery q
@@ -27,15 +44,15 @@ type instance RuleResult (CacheQuery q) = ByteString
 -- | A wrapper around 'addOracleCache' which given a @q@ which is a 'ShakeValue'
 -- allows caching and retrieving 'Value's within Shake. See documentation on
 -- 'addOracleCache' or see Slick examples for more info.
--- 
+--
 -- > -- We need to define a unique datatype as our cache key
 -- > newtype PostFilePath =
 -- >   PostFilePath String
--- > -- We can derive the classes we need (using GeneralizedNewtypeDeriving) 
+-- > -- We can derive the classes we need (using GeneralizedNewtypeDeriving)
 -- > -- so long as the underlying type implements them
 -- >   deriving (Show, Eq, Hashable, Binary, NFData)
 -- > -- now in our shake rules we can create a cache by providing a loader action
--- > 
+-- >
 -- > do
 -- > postCache <- jsonCache $ \(PostFilePath path) ->
 -- >   readFile' path >>= markdownToHTML . Text.pack
@@ -63,10 +80,10 @@ jsonCache' loader = unpackJSON
 
 -- | A wrapper around 'jsonCache' which simplifies caching of values which do NOT
 -- depend on an input parameter. Unfortunately Shake still requires that the
--- key type implement several typeclasses, however this is easily accomplished 
+-- key type implement several typeclasses, however this is easily accomplished
 -- using @GeneralizedNewtypeDeriving@ and a wrapper around @()@.
 -- example usage:
--- 
+--
 -- > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -- > module Main where
 -- > newtype ProjectList = ProjectList ()
@@ -88,3 +105,33 @@ simpleJsonCache'
 simpleJsonCache' q loader = do
   cacheGetter <- jsonCache' (const loader)
   return $ cacheGetter q
+
+--------------------------------------------------------------------------------
+
+fmapFmapOptDescr :: (a -> b) -> OptDescr (Either String a) -> OptDescr (Either String b)
+fmapFmapOptDescr f = fmap (fmap f)
+
+-- | A version of 'shakeArgsPrunWith' that always do prune at the end.
+shakeArgsAlwaysPruneWith :: ShakeOptions
+                         -> ([FilePath] -> IO ())
+                         -> [OptDescr (Either String a)] -> ([a] -> [String] -> IO (Maybe (Rules ())))
+                         -> IO ()
+shakeArgsAlwaysPruneWith opts prune flags act = do
+  let flags2 = fmap (fmapFmapOptDescr Just) flags
+  IO.withTempFile $ \file -> do
+    shakeArgsWith opts { shakeLiveFiles = file : shakeLiveFiles opts } flags2 $
+      \opts args ->
+        act (catMaybes opts) args
+    src <- lines <$> IO.readFile' file
+    prune src
+
+-- | Remove all files that are in the target directory,
+--   but not in the `shake` rules.
+pruner :: FilePath -> [FilePath] -> IO ()
+pruner root listOfFiles = do
+  present <- listFilesRecursive root
+  let listOfFilesToRemove = (toStandard <$> present) L.\\ (toStandard <$> listOfFiles)
+      removedFiles = show listOfFilesToRemove
+  mapM_ removeFile listOfFilesToRemove
+
+  Prelude.putStrLn $ "Pruned stale outputs: " <> removedFiles

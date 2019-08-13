@@ -30,6 +30,7 @@ executables:
     dependencies:
     - shake
     - slick
+    - slick-live
     - base >= 4.7 && < 5
     - aeson
     - lens-aeson
@@ -37,7 +38,9 @@ executables:
     - pandoc
     - text
     - binary
-    - bytestring
     - containers
     - mustache
     - time
+    - MissingH
+    - directory
+    - extra

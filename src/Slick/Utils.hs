@@ -1,11 +1,9 @@
 module Slick.Utils
   ( getDirectoryPaths
-  , fmapFmapOptDescr
   ) where
 
 import           Control.Monad
 import           Data.List                  (intersperse, sortBy)
-import           Data.List                  as L (intersperse, sortBy, (\\))
 import           Data.List                  as L (intersperse, sortBy, (\\))
 import           Data.Ord                   (comparing)
 import qualified Data.Text                  as T
@@ -32,6 +30,3 @@ getDirectoryPaths extensions dirs =
       getPaths dir =
         fmap (dir </>) <$>
           getDirectoryFiles dir extensions
-
-fmapFmapOptDescr :: (a -> b) -> OptDescr (Either String a) -> OptDescr (Either String b)
-fmapFmapOptDescr f = fmap (fmap f)

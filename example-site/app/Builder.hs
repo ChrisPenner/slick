@@ -34,7 +34,6 @@ import           Development.Shake
 import           Development.Shake.Classes
 import           Development.Shake.FilePath
 import           Slick
-import           Slick.Build
 import           Slick.Pandoc
 import           System.Console.GetOpt
 import           System.Environment

@@ -26,13 +26,12 @@ import           Development.Shake          hiding (Resource)
 import           Development.Shake
 import           Development.Shake.Classes
 import           Development.Shake.FilePath
-import           Development.Shake.FilePath
 import           GHC.Generics               (Generic)
 import           System.Console.GetOpt
 import           System.Directory.Extra
 import           System.IO.Extra            as IO
 
-import           Slick.Utils
+import           Slick.Utils                as Utils
 
 --------------------------------------------------------------------------------
 
@@ -108,6 +107,9 @@ simpleJsonCache' q loader = do
   return $ cacheGetter q
 
 --------------------------------------------------------------------------------
+
+fmapFmapOptDescr :: (a -> b) -> OptDescr (Either String a) -> OptDescr (Either String b)
+fmapFmapOptDescr f = fmap (fmap f)
 
 -- | A version of 'shakeArgsPrunWith' that always do prune at the end.
 shakeArgsAlwaysPruneWith :: ShakeOptions

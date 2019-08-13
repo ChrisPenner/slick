@@ -27,7 +27,6 @@ import           Development.Shake.FilePath
 import           Development.Shake.Util     (shakeArgsPruneWith)
 import           GHC.Generics               (Generic)
 import           Slick
-import           Slick.Build
 import           Slick.Serve
 import           System.Console.GetOpt
 import           System.Directory

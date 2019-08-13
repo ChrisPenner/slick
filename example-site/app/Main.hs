@@ -62,8 +62,10 @@ buildRules flags = do
     action $ runAfter $ liftIO $ do
       th <- forkIO $ do
         stopServer <- newEmptyMVar
-        putStrLn $ "Running with Preview"
-        serverStart "dist" "127.0.0.1" 3030 serverHandler
+        let previewPort = 3030
+        let previewHost = "localhost"
+        putStrLn $ "Running with Preview on http://" <> previewHost <> ":" <> show previewPort
+        serverStart "dist" previewHost previewPort serverHandler
 
       forever $
         threadDelay 100000

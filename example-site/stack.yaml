@@ -40,8 +40,8 @@ packages:
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- git: git@gitlab.com:migamake/slick-live.git
-  commit: a563b66c10b308959808fbb44632c29577287788
+- git: git@github.com:sigrlami/slick-live.git
+  commit: 988f0db39ab0073c9c41fe982889a66991b4fef9
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

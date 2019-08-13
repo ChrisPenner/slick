@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9f51eb4a962ef47176f851449af91f6baec1f0732f695c0b8f3d0c8aa078f1b7
+-- hash: fef3fcd242f09353d39f52b648da2ebaa593ec931f4103927eaeb89136ba1895
 
 name:           slick
 version:        0.2.0.0
@@ -43,7 +43,6 @@ library
     , bytestring
     , directory
     , extra
-    , http-types
     , lens
     , lens-aeson
     , mustache
@@ -51,11 +50,6 @@ library
     , shake
     , text
     , time
-    , wai
-    , wai-app-static
-    , wai-websockets >=3.0.1
-    , warp
-    , websockets
   default-language: Haskell2010
 
 test-suite slick-test
@@ -73,7 +67,6 @@ test-suite slick-test
     , bytestring
     , directory
     , extra
-    , http-types
     , lens
     , lens-aeson
     , mustache
@@ -82,9 +75,4 @@ test-suite slick-test
     , slick
     , text
     , time
-    , wai
-    , wai-app-static
-    , wai-websockets >=3.0.1
-    , warp
-    , websockets
   default-language: Haskell2010

@@ -28,7 +28,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - shake
+    - shake == 0.18.2
     - slick
     - slick-live
     - base >= 4.7 && < 5

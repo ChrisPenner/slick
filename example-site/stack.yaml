@@ -42,6 +42,12 @@ packages:
 extra-deps:
 - git: git@github.com:sigrlami/slick-live.git
   commit: 988f0db39ab0073c9c41fe982889a66991b4fef9
+- shake-0.18.2@sha256:0d6a5df63fe1a5c0a6d75ee86e36306cce8306f790ac8c1f791d65757ff62101,14806
+
+- extra-1.6.18@sha256:5f1fff126f0ae47b701fff5aa8462dc63cb44465d5a724b0afd20a3d731903af,2705
+- filepattern-0.1.1@sha256:984f43798572e325e9509b3b59fd4ccc2b0f94b8b065585e0505570c98aa1016,2480
+- heaps-0.3.6.1@sha256:7928b759ca5180d35722c45948c0bde264229f3c99c1888188a3d9285f13d3d2,1340
+- js-dgtable-0.5.2@sha256:f75cb4fa53c88c65794becdd48eb0d3b2b8abd89a3d5c19e87af91f5225c15e4,1703
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

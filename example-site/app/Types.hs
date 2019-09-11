@@ -37,22 +37,6 @@ import           GHC.Generics               (Generic)
 -------------------------------------------------------------------------------
 -- Core Data Types and Instances
 
--- | Represents the template dependencies of the index page
-data IndexInfo =
-  IndexInfo
-    { posts :: [Post]
-    } deriving (Generic, Show, FromJSON, ToJSON)
-
--- | A JSON serializable representation of a post's metadata
-data Post =
-  Post
-    { title   :: String
-    , author  :: String
-    , content :: String
-    , url     :: String
-    , date    :: String
-    , image   :: Maybe String
-    } deriving (Generic, Eq, Ord, Show, FromJSON, ToJSON)
 
 -- | A simple wrapper data-type which implements 'ShakeValue';
 --   Used as a Shake Cache key to build a cache of post objects.

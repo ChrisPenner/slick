@@ -18,6 +18,41 @@ packages:
   original:
     git: git@github.com:sigrlami/slick-live.git
     commit: 988f0db39ab0073c9c41fe982889a66991b4fef9
+- completed:
+    hackage: shake-0.18.2@sha256:0d6a5df63fe1a5c0a6d75ee86e36306cce8306f790ac8c1f791d65757ff62101,14806
+    pantry-tree:
+      size: 11991
+      sha256: c65170e2f7c3369dbd487a7ab7e1a3542dbc943f05eacca12950001e3414ebfb
+  original:
+    hackage: shake-0.18.2@sha256:0d6a5df63fe1a5c0a6d75ee86e36306cce8306f790ac8c1f791d65757ff62101,14806
+- completed:
+    hackage: extra-1.6.18@sha256:5f1fff126f0ae47b701fff5aa8462dc63cb44465d5a724b0afd20a3d731903af,2705
+    pantry-tree:
+      size: 1828
+      sha256: 61a764a72012e96ac338622af1dbcd8d7620d5952ccd631fc708fb0c5343494a
+  original:
+    hackage: extra-1.6.18@sha256:5f1fff126f0ae47b701fff5aa8462dc63cb44465d5a724b0afd20a3d731903af,2705
+- completed:
+    hackage: filepattern-0.1.1@sha256:984f43798572e325e9509b3b59fd4ccc2b0f94b8b065585e0505570c98aa1016,2480
+    pantry-tree:
+      size: 998
+      sha256: 9b2829a8c9b47bb5dcee3c6547fcd3867354ed2b0094271e01fb2df89a3fc6fd
+  original:
+    hackage: filepattern-0.1.1@sha256:984f43798572e325e9509b3b59fd4ccc2b0f94b8b065585e0505570c98aa1016,2480
+- completed:
+    hackage: heaps-0.3.6.1@sha256:7928b759ca5180d35722c45948c0bde264229f3c99c1888188a3d9285f13d3d2,1340
+    pantry-tree:
+      size: 472
+      sha256: b861a1cf43db0ec89a2c09caf8e913210aec8564a36046a8525cde3965dd181a
+  original:
+    hackage: heaps-0.3.6.1@sha256:7928b759ca5180d35722c45948c0bde264229f3c99c1888188a3d9285f13d3d2,1340
+- completed:
+    hackage: js-dgtable-0.5.2@sha256:f75cb4fa53c88c65794becdd48eb0d3b2b8abd89a3d5c19e87af91f5225c15e4,1703
+    pantry-tree:
+      size: 524
+      sha256: 223402a5a6d52020406e68ce94d27bed0f001161c270864414c220c5c8a02eb6
+  original:
+    hackage: js-dgtable-0.5.2@sha256:f75cb4fa53c88c65794becdd48eb0d3b2b8abd89a3d5c19e87af91f5225c15e4,1703
 snapshots:
 - completed:
     size: 527399

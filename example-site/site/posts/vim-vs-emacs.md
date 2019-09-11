@@ -1,5 +1,5 @@
 ---
-title: Vim vs. Emacs?
+title: Vim is. Emacs?
 author: Chris Penner
 date: Feb 6, 2015
 tags: [vim]

@@ -96,7 +96,7 @@ loadPost srcPath = cacheAction ("load" :: T.Text, srcPath) $ do
 
 -- Build an html file for a given post given a cache of posts.
 writePost :: Post -> Action ()
-writePost post = cacheAction ("write" :: T.Text, url post) $ do
+writePost post = cacheAction ("write" :: T.Text, post) $ do
   template <- compileTemplate' "site/templates/post.html"
   writeFileDist (url post) . T.unpack $ substitute template (toJSON post)
 

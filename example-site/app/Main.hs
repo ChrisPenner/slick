@@ -72,7 +72,7 @@ writeFileDist = writeFile' . ("dist" </>)
 
 -- | given a cache of posts this will build a table of contents
 buildIndex :: [Post] -> Action ()
-buildIndex posts' = cacheAction ("index" :: T.Text) $ do
+buildIndex posts' = do
   indexT <- compileTemplate' "site/templates/index.html"
   let indexInfo = IndexInfo {posts = posts'}
       indexHTML = T.unpack $ substitute indexT (toJSON indexInfo)
@@ -80,38 +80,38 @@ buildIndex posts' = cacheAction ("index" :: T.Text) $ do
 
 -- | Find all post source files and tell shake to build
 --   the corresponding html pages.
-loadPosts :: Action [Post]
-loadPosts = cacheAction ("load-posts" :: T.Text) $ do
+buildPosts :: Action [Post]
+buildPosts = do
   pPaths <- getDirectoryFiles "." ["site/posts//*.md"]
-  forP pPaths loadPost
+  forP pPaths buildPost
 
 -- | Given a post source-file's file path as a cache key, load the Post object
 -- for it. This is used with 'jsonCache' to provide post caching.
-loadPost :: FilePath -> Action Post
-loadPost srcPath = cacheAction ("load" :: T.Text, srcPath) $ do
-  postData <- readFile' srcPath >>= markdownToHTML markdownOptions html5Options . T.pack
+buildPost :: FilePath -> Action Post
+buildPost srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
+  liftIO . putStrLn $ "Rebuilding post: " <> srcPath
+  postContent <- readFile' srcPath
+  postData <- markdownToHTML markdownOptions html5Options . T.pack $ postContent
   let postURL = T.pack . dropDirectory1 $ srcPath -<.> "html"
       withURL = _Object . at "url" ?~ String postURL
-  convert . withURL $ postData
-
--- Build an html file for a given post given a cache of posts.
-writePost :: Post -> Action ()
-writePost post = cacheAction ("write" :: T.Text, post) $ do
+  post <- convert . withURL $ postData
+  -- Write the post:
   template <- compileTemplate' "site/templates/post.html"
   writeFileDist (url post) . T.unpack $ substitute template (toJSON post)
+  return post
 
 copyStaticFiles :: Action ()
-copyStaticFiles = cacheAction ("static-files" :: T.Text) $ do
+copyStaticFiles = do
     filepaths <- getDirectoryFiles "./site/" ["images//*", "css//*", "js//*"]
     void $ forP filepaths $ \filepath ->
         copyFileChanged ("site" </> filepath) ("dist" </> filepath)
+
 
 -- | Specific build rules for the Shake system
 --   defines workflow to build the website
 buildRules :: Action ()
 buildRules = do
-  allPosts <- loadPosts
-  void $ forP allPosts writePost
+  allPosts <- buildPosts
   buildIndex allPosts
   copyStaticFiles
 

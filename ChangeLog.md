@@ -1,7 +1,8 @@
 # Changelog for sitepipe-shake
 
-## 0.3.0.0
-- Remove Slick.Caching and Slick.Pandoc exports from Slick module
+## 1.0.0.0
+- Deprecate Slick.Caching, Simplify all other exports down.
+- Switch to recommending `Shake.Development.Forward`
 
 ## 0.2.0.0
 - Allow IO in `makePandocReader` and `makePandocWriter` to allow use of complex filters, etc.

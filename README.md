@@ -188,3 +188,5 @@ data Post =
 If you need to run arbitrary shell commands you can use [`cache`](https://hackage.haskell.org/package/shake-0.18.3/docs/Development-Shake-Forward.html#v:cache); it will do its best to track file use during the run of the command and cache-bust on that; results may vary. It's likely better to use explicit tracking commands like `readFile'` when possible, (or even just use `readFile'` on the files you depend on, then throw away the results. It's equivalent to explicitly depending on the file contents).
 
 Shake has many dependency tracking combinators available; whenever possible you should use the shake variants of these (e.g. `copyFileChanged`, `readFile'`, `writeFile'`, etc.). This will allow shake to detect when and what it needs to rebuild.
+
+Note: You'll likely need to delete `.shake` in your working directory after editing your `Main.hs` file as shake can get confused if rules change without it noticing.

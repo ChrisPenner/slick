@@ -1,37 +1,27 @@
+{-|
+Module      : Slick.Shake
+Description : DEPRECATED -- Advanced caching tools for using slick with shake
+Copyright   : (c) Chris Penner, 2019
+License     : BSD3
+-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Slick.Caching
+module Slick.Caching {-# DEPRECATED "No longer necessary with slick >= 0.3.0.0" #-}
   ( simpleJsonCache
   , simpleJsonCache'
   , jsonCache
   , jsonCache'
-  , shakeArgsAlwaysPruneWith
-  , pruner
   )
 where
 
-import           Control.Lens
-import           Control.Monad
-import           Data.Aeson                 as A
-import           Data.Aeson.Lens
-import           Data.ByteString.Lazy
-import           Data.List                  as L (intersperse, sortBy, (\\))
-import           Data.Maybe
-import           Data.Monoid
-import qualified Data.Text                  as T
-import           Development.Shake          hiding (Resource)
-import           Development.Shake
-import           Development.Shake.Classes
-import           Development.Shake.FilePath
-import           GHC.Generics               (Generic)
-import           System.Console.GetOpt
-import           System.Directory.Extra
-import           System.IO.Extra            as IO
-
-import           Slick.Utils                as Utils
+import Data.Aeson                 as A
+import Data.ByteString.Lazy
+import Development.Shake          hiding (Resource)
+import Development.Shake.Classes
+import GHC.Generics               (Generic)
 
 --------------------------------------------------------------------------------
 
@@ -109,35 +99,3 @@ simpleJsonCache'
 simpleJsonCache' q loader = do
   cacheGetter <- jsonCache' (const loader)
   return $ cacheGetter q
-
---------------------------------------------------------------------------------
-
-fmapFmapOptDescr :: (a -> b) -> OptDescr (Either String a) -> OptDescr (Either String b)
-fmapFmapOptDescr f = fmap (fmap f)
-
--- | Run shake but prune any unsued files at the end.
---
---   Adapted from 'shakeArgsPruneWith'
-shakeArgsAlwaysPruneWith :: ShakeOptions
-                         -> ([FilePath] -> IO ())
-                         -> [OptDescr (Either String a)] -> ([a] -> [String] -> IO (Maybe (Rules ())))
-                         -> IO ()
-shakeArgsAlwaysPruneWith opts prune flags act = do
-  let flags2 = fmap (fmapFmapOptDescr Just) flags
-  IO.withTempFile $ \file -> do
-    shakeArgsWith opts { shakeLiveFiles = file : shakeLiveFiles opts } flags2 $
-      \opts args ->
-        act (catMaybes opts) args
-    src <- lines <$> IO.readFile' file
-    prune src
-
--- | Remove all files that are in the target directory,
---   but not in the `shake` rules.
-pruner :: FilePath -> [FilePath] -> IO ()
-pruner root listOfFiles = do
-  present <- listFilesRecursive root
-  let listOfFilesToRemove = (toStandard <$> present) L.\\ (toStandard <$> listOfFiles)
-      removedFiles = show listOfFilesToRemove
-  mapM_ removeFile listOfFilesToRemove
-
-  Prelude.putStrLn $ "Pruned stale outputs: " <> removedFiles

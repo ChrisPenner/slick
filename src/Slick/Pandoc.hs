@@ -1,8 +1,16 @@
+{-|
+Module      : Slick.Pandoc
+Description : Slick utilities for working with Pandoc
+Copyright   : (c) Chris Penner, 2019
+License     : BSD3
+-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Slick.Pandoc
   ( markdownToHTML
   , markdownToHTML'
+  , markdownToHTMLWithOpts
+  , markdownToHTMLWithOpts' 
   , makePandocReader
   , makePandocReader'
   , PandocReader
@@ -12,24 +20,18 @@ module Slick.Pandoc
   , defaultMarkdownOptions
   , defaultHtml5Options
   , convert
-  , srcToURL
-  , destToSrc
-  , srcToDest
   , flattenMeta
   ) where
 
-import           Control.Lens
-import           Control.Monad
-import           Data.Aeson
-import           Data.Aeson.Lens
+import Data.Aeson
+import Development.Shake
+import Text.Pandoc
+import Text.Pandoc.Highlighting
+import Text.Pandoc.Shared
+import Slick.Utils
+import Data.HashMap.Strict as HM
+
 import qualified Data.Text                  as T
-import           Development.Shake
-import           Development.Shake.Classes
-import           Development.Shake.FilePath
-import           GHC.Generics               hiding (Meta)
-import           Text.Pandoc
-import           Text.Pandoc.Highlighting
-import           Text.Pandoc.Shared
 
 --------------------------------------------------------------------------------
 
@@ -71,27 +73,39 @@ unPandocM p = do
 --   The 'Value'  has a "content" key containing rendered HTML.
 --
 --   Metadata is assigned on the respective keys in the 'Value'
-markdownToHTML :: ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
-               -> WriterOptions  -- ^ Pandoc writer options to modify output
-               -> T.Text         -- ^ Text for conversion
+markdownToHTML :: T.Text
                -> Action Value
-markdownToHTML readOps writeOps textToConvert =
-  loadUsing
-    (readMarkdown readOps)
-    (writeHtml5String writeOps)
-    textToConvert
+markdownToHTML txt =
+    markdownToHTMLWithOpts defaultMarkdownOptions defaultHtml5Options txt
 
 -- | Like 'markdownToHTML' but allows returning any JSON serializable object
 markdownToHTML' :: (FromJSON a)
-                => ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
-                -> WriterOptions  -- ^ Pandoc writer options to modify output
-                -> T.Text         -- ^ Text for conversion
+                => T.Text
                 -> Action a
-markdownToHTML' rops wops =
-  markdownToHTML rops wops >=> convert
-  -- Sequential composition of monadic functions
-  -- that connect markdown converter to JSON serializer
-  -- Monad m => (a -> m b) -> (b -> m c) -> a -> m c
+markdownToHTML' txt =
+    markdownToHTML txt >>= convert
+
+-- | Like 'markdownToHTML' but allows returning any JSON serializable object
+markdownToHTMLWithOpts
+    :: ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
+    -> WriterOptions  -- ^ Pandoc writer options to modify output
+    -> T.Text         -- ^ Text for conversion
+    -> Action Value
+markdownToHTMLWithOpts rops wops txt =
+  loadUsing
+    (readMarkdown rops)
+    (writeHtml5String wops)
+    txt
+
+-- | Like 'markdownToHTML' but allows returning any JSON serializable object
+markdownToHTMLWithOpts'
+    :: (FromJSON a)
+    => ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
+    -> WriterOptions  -- ^ Pandoc writer options to modify output
+    -> T.Text         -- ^ Text for conversion
+    -> Action a
+markdownToHTMLWithOpts' rops wops txt =
+    markdownToHTMLWithOpts rops wops txt >>= convert
 
 -- | Given a reader from 'Text.Pandoc.Readers' this creates a loader which
 --   given the source document will read its metadata into a 'Value'
@@ -127,7 +141,10 @@ loadUsing :: PandocReader textType
 loadUsing reader writer text = do
   (pdoc, meta) <- makePandocReader reader text
   outText      <- unPandocM $ writer pdoc
-  let withContent = meta & _Object . at "content" ?~ String outText
+  withContent <- case meta of
+      Object m -> return . Object $ HM.insert "content" (String outText) m
+          -- meta & _Object . at "content" ?~ String outText
+      _ -> fail "Failed to parse metadata"
   return withContent
 
 -- | Like 'loadUsing' but allows also deserializes the 'Value' into any object
@@ -142,31 +159,6 @@ loadUsing' reader writer text =
   loadUsing reader writer text >>= convert
 
 --------------------------------------------------------------------------------
-
--- | Convert 'build' filepaths into source file filepaths
-destToSrc :: FilePath  -- ^ input directory "site"
-          -> FilePath
-          -> FilePath
-destToSrc i p = i </> dropDirectory1 p
-
--- | Convert source filepaths into build filepaths
-srcToDest :: FilePath  -- ^ input directory, "dist"
-          -> FilePath  -- ^
-          -> FilePath  -- ^
-srcToDest i p = i </> dropDirectory1 p
-
--- | Convert a source file path into a URL
-srcToURL :: FilePath -> String
-srcToURL = ("/" ++) . dropDirectory1 . (-<.> ".html")
-
---------------------------------------------------------------------------------
-
--- | Attempt to convert between two JSON serializable objects (or 'Value's).
---   Failure to deserialize fails the Shake build.
-convert :: (FromJSON a, ToJSON a, FromJSON b) => a -> Action b
-convert a = case fromJSON (toJSON a) of
-  Success r   -> pure r
-  Error   err -> fail $ "json conversion error:" ++ err
 
 -- | Flatten a Pandoc 'Meta' into a well-structured JSON object, rendering Pandoc
 --   text objects into plain strings along the way.

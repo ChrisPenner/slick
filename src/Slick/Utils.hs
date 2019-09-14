@@ -1,19 +1,17 @@
+{-|
+Module      : Slick.Utils
+Description : Slick helper utilities
+Copyright   : (c) Chris Penner, 2019
+License     : BSD3
+-}
 module Slick.Utils
   ( getDirectoryPaths
+  , convert
   ) where
 
-import           Control.Monad
-import           Data.List                  (intersperse, sortBy)
-import           Data.List                  as L (intersperse, sortBy, (\\))
-import           Data.Ord                   (comparing)
-import qualified Data.Text                  as T
-import           Data.Time
-import           Development.Shake
-import           Development.Shake.FilePath
-import           System.Console.GetOpt
-import           System.Directory
-import           System.Directory.Extra     (listFilesRecursive, removeFile)
-import           System.Environment
+import Data.Aeson
+import Development.Shake
+import Development.Shake.FilePath
 
 ------------------------------------------------------------------------------
 -- Helper functions
@@ -30,3 +28,11 @@ getDirectoryPaths extensions dirs =
       getPaths dir =
         fmap (dir </>) <$>
           getDirectoryFiles dir extensions
+
+-- | Attempt to convert between two JSON serializable objects (or 'Value's).
+--   Failure to deserialize fails the Shake build.
+convert :: (FromJSON a, ToJSON a, FromJSON b) => a -> Action b
+convert a = case fromJSON (toJSON a) of
+  Success r   -> pure r
+  Error   err -> fail $ "json conversion error:" ++ err
+

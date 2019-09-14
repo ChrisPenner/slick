@@ -1,15 +1,22 @@
+{-|
+Module      : Slick
+Description : A quick & simple static site builder built on Shake and Pandoc
+Copyright   : (c) Chris Penner, 2019
+License     : BSD3
+-}
 module Slick
   (
   -- * Slick
   -- | This module re-exports the basics you need to run slick.
-  -- You may need additional imports from "Slick.Pandoc" or "Slick.Caching".
+  --  For more complex tasks look into "Slick.Pandoc".
+  --
+  --  To get started use the <https://github.com/ChrisPenner/slick-template Slick Template>.
 
   -- ** Basics
-    markdownToHTML
+    slick
+  , slickWithOpts
+  , markdownToHTML
   , markdownToHTML'
-  , defaultMarkdownOptions
-  , defaultHtml5Options
-  , convert
 
   -- ** Mustache Templating
   , compileTemplate'
@@ -17,11 +24,12 @@ module Slick
 
   -- ** Utils
   , getDirectoryPaths
+  , convert
   )
 where
 
-import Slick.Caching
 import Slick.Mustache
 import Slick.Pandoc
+import Slick.Shake
 import Slick.Utils
 import Text.Mustache

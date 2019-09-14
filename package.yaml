@@ -1,5 +1,5 @@
 name:                slick
-version:             0.3.0.0
+version:             1.0.0.0
 github:              "ChrisPenner/slick"
 license:             BSD3
 author:              "Chris Penner"
@@ -23,27 +23,16 @@ dependencies:
 - base >= 4.7 && < 5
 - shake
 - aeson
-- lens-aeson
-- lens
 - pandoc
 - text
-- binary
-- bytestring
 - mustache
-- time
 - directory
 - extra
+- bytestring
+- unordered-containers
+
+ghc-options:
+- -Wall
 
 library:
   source-dirs: src
-
-tests:
-  slick-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - slick

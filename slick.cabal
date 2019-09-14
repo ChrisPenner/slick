@@ -4,16 +4,16 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fef3fcd242f09353d39f52b648da2ebaa593ec931f4103927eaeb89136ba1895
+-- hash: 79915148cee0cdce606c78485ba534213072221048ba602051e7d84a0428dc20
 
 name:           slick
-version:        0.2.0.0
+version:        1.0.0.0
 description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
 homepage:       https://github.com/ChrisPenner/slick#readme
 bug-reports:    https://github.com/ChrisPenner/slick/issues
 author:         Chris Penner
 maintainer:     example@example.com
-copyright:      2018 Chris Penner
+copyright:      2019 Chris Penner
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -31,48 +31,22 @@ library
       Slick.Caching
       Slick.Mustache
       Slick.Pandoc
+      Slick.Shake
       Slick.Utils
   other-modules:
       Paths_slick
   hs-source-dirs:
       src
+  ghc-options: -Wall
   build-depends:
       aeson
     , base >=4.7 && <5
-    , binary
     , bytestring
     , directory
     , extra
-    , lens
-    , lens-aeson
     , mustache
     , pandoc
     , shake
     , text
-    , time
-  default-language: Haskell2010
-
-test-suite slick-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Paths_slick
-  hs-source-dirs:
-      test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      aeson
-    , base >=4.7 && <5
-    , binary
-    , bytestring
-    , directory
-    , extra
-    , lens
-    , lens-aeson
-    , mustache
-    , pandoc
-    , shake
-    , slick
-    , text
-    , time
+    , unordered-containers
   default-language: Haskell2010

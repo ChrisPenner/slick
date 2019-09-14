@@ -19,6 +19,7 @@ See the [hackage docs](https://hackage.haskell.org/package/slick) for in depth h
 
 Here's a quick overview of what Slick can do:
 
+- Slick uses the Shake build tool; the same used by ghcide! We recommend using `Development.Shake.Forward`; it auto-discovers which resources it should cache as you go! This means a blazing fast static site builder without all the annoying dependency tracking.
 -   Slick provides helpers for loading in blog-post-like things using Pandoc under the hood;
     -   This means that if Pandoc can read it, you can use it with Slick!
     -   Write your blog posts in Markdown or LaTeX and render it to
@@ -56,7 +57,7 @@ Want to get started quickly? Check out the [Slick site template](https://github.
 
 # Example Site:
 
-Here's an example of using slick to build an ENTIRE blog with full automatic asset caching:
+Here's an example of using slick to build an ENTIRE blog with full automatic asset caching.
 
 ```haskell
 {-# LANGUAGE DeriveGeneric #-}
@@ -154,3 +155,36 @@ Not pictured above is:
 
 - Using custom Pandoc readers to load other document types, there are many helpers for this in the [slick library](https://hackage.haskell.org/package/slick)
 - Using custom build tools like sassy css or js minifiers; you can do these things using [Shake](https://hackage.haskell.org/package/shake) directly.
+
+
+# Caching guide
+
+Shake takes care of most of the tricky parts, but there're still a few things you need to know.
+
+Cache-busting in Slick works using [`Development.Shake.Forward`](https://hackage.haskell.org/package/shake/docs/Development-Shake-Forward.html). The idea is that you can wrap actions with [`cacheAction`](https://hackage.haskell.org/package/shake-0.18.3/docs/Development-Shake-Forward.html#v:cacheAction), providing an unique identifier for each time it runs. Shake will track any dependencies which are triggered during the first run of that action and can use them to detect when that particular action must be re-run. Typically you'll want to cache an action for each "thing" you have to load, e.g. when you load a post, or when you build a page. You can also nest these caches if you like.
+
+When using `cacheAction` Shake will automatically serialize and store the results of that action to disk so that on a later build it can simply 'hydrate' that asset without running the command. For this reason, your data models should probably implement `Binary`. Here's an example data model:
+
+```haskell
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+
+import Data.Aeson (ToJSON, FromJSON)
+import Development.Shake.Classes (Binary)
+import GHC.Generics (Generic)
+
+-- | Data for a blog post
+data Post =
+    Post { title   :: String
+         , author  :: String
+         , content :: String
+         , url     :: String
+         , date    :: String
+         , image   :: Maybe String
+         }
+    deriving (Generic, Eq, Ord, Show, FromJSON, ToJSON, Binary)
+```
+
+If you need to run arbitrary shell commands you can use [`cache`](https://hackage.haskell.org/package/shake-0.18.3/docs/Development-Shake-Forward.html#v:cache); it will do its best to track file use during the run of the command and cache-bust on that; results may vary. It's likely better to use explicit tracking commands like `readFile'` when possible, (or even just use `readFile'` on the files you depend on, then throw away the results. It's equivalent to explicitly depending on the file contents).
+
+Shake has many dependency tracking combinators available; whenever possible you should use the shake variants of these (e.g. `copyFileChanged`, `readFile'`, `writeFile'`, etc.). This will allow shake to detect when and what it needs to rebuild.

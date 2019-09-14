@@ -1,5 +1,7 @@
 # Slick
 
+Want to get started quickly? Check out the [Slick site template](https://github.com/ChrisPenner/slick-template)!
+
 Slick is a static site generator written and configured using Haskell. It's the spiritual successor to my previous
 static-site generator project [SitePipe](https://github.com/chrispenner/SitePipe/); but is faster, simpler, and more
 easily used in combination with other tools.
@@ -13,14 +15,11 @@ goals.
 
 See the [hackage docs](https://hackage.haskell.org/package/slick) for in depth help on available combinators.
 
-Also check out the [example site](https://github.com/ChrisPenner/Slick/blob/master/example-site/app/Main.hs)!
-
 # Overview
 
 Here's a quick overview of what Slick can do:
 
--   Slick provides helpers for loading in blog-post-like things using Pandoc
-    under the hood;
+-   Slick provides helpers for loading in blog-post-like things using Pandoc under the hood;
     -   This means that if Pandoc can read it, you can use it with Slick!
     -   Write your blog posts in Markdown or LaTeX and render it to
         syntax-highlighted HTML!
@@ -52,76 +51,106 @@ for me, so that's where SitePipe and subsequently Slick came from.
 Quick Start
 ---------------
 
-The easiest way to get started is to clone this repo and try out
-the example in the example-site directory. 
-
-You can build the example using Stack by `cd`ing into the directory and running
-`stack build && stack exec example-site-exe site`. This creates a 'dist' folder with the
-results of the build. A quick way to serve the site is to use [Serve](https://www.npmjs.com/package/serve).
-
-```shell
-$ npm install -g serve
-serve dist
-```
-
-Then navigate to the port which is serving (usually http://localhost:3000 or http://localhost:5000 )
+Want to get started quickly? Check out the [Slick site template](https://github.com/ChrisPenner/slick-template) and follow the steps there.
 
 
 # Example Site:
 
-Here's an example of using slick to render out the posts for a pretty simple blog;
+Here's an example of using slick to build an ENTIRE blog with full automatic asset caching:
 
 ```haskell
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
-import qualified Data.Text as T
-import Development.Shake
-import Development.Shake.FilePath
-import Data.Foldable
-import Slick
+import           Control.Lens
+import           Control.Monad
+import           Data.Aeson                 as A
+import           Data.Aeson.Lens
+import           Development.Shake
+import           Development.Shake.Classes
+import           Development.Shake.Forward
+import           Development.Shake.FilePath
+import           GHC.Generics               (Generic)
+import           Slick
+import qualified Data.Text                  as T
 
+outputFolder :: FilePath
+outputFolder = "docs/"
 
--- convert a source filepath to a build filepath
--- e.g. site/css/style.css -> build/css/style.css
-srcToBuild :: FilePath -> FilePath
-srcToBuild path = "build" </> dropDirectory1 path
+-- | Data for the index page
+data IndexInfo =
+  IndexInfo
+    { posts :: [Post]
+    } deriving (Generic, Show, FromJSON, ToJSON)
 
-main' :: IO ()
-main' =
-  shakeArgs shakeOptions $ do
-    -- Require all the things we need to build the site
-    -- For this simplified example we'll just copy static assets and build a page for each post
-    "site" ~> need ["static", "posts"]
-    -- Require all static assets
-    "static" ~> do
-      staticFiles <- getDirectoryFiles "." ["site/css//*", "site/js//*", "site/images//*"]
-      let copyStaticFile path = copyFileChanged path (srcToBuild path)
-      traverse_ copyStaticFile staticFiles
-     -- Find and require every post to be built
-     -- this uses the `~>` 'phony' rule because it doesn't actually write any files on its own
-    "posts" ~> do
-      postPaths <- getDirectoryFiles "site/posts" ["*.md"]
-      -- We tell shake we need to build each individual post
-      -- We require each post separately so that Shake can cache them individually
-      need (((-<.> "html") . srcToBuild) <$> postPaths)
-     -- rule for actually building posts
-    "build/posts//*.html" %> \out -> do 
-      -- Recover the path where the source file for the post should be
-      let srcPath = (dropDirectory1 out) -<.> "md"
-      fileContents <- readFile' srcPath
-      -- Load a markdown source file into an Aeson Value 
-      -- The 'content' key contains an html-rendered string
-      -- Any metadata from a yaml block is loaded into the appropriate keys in the Aeson object
-      -- e.g. author, date, tags, etc.
-      postData <- markdownToHTML . T.pack $ fileContents
-      -- Load a mustache template using using cache if available
-      template <- compileTemplate' "site/templates/post.html"
-      -- Fill in the template using the post metadata/content
-      writeFile' out . T.unpack $ substitute template postData
+-- | Data for a blog post
+data Post =
+    Post { title   :: String
+         , author  :: String
+         , content :: String
+         , url     :: String
+         , date    :: String
+         , image   :: Maybe String
+         }
+    deriving (Generic, Eq, Ord, Show, FromJSON, ToJSON, Binary)
+
+-- | given a list of posts this will build a table of contents
+buildIndex :: [Post] -> Action ()
+buildIndex posts' = do
+  indexT <- compileTemplate' "site/templates/index.html"
+  let indexInfo = IndexInfo {posts = posts'}
+      indexHTML = T.unpack $ substitute indexT (toJSON indexInfo)
+  writeFile' (outputFolder </> "index.html") indexHTML
+
+-- | Find and build all posts
+buildPosts :: Action [Post]
+buildPosts = do
+  pPaths <- getDirectoryFiles "." ["site/posts//*.md"]
+  forP pPaths buildPost
+
+-- | Load a post, process metadata, write it to output, then return the post object
+-- Detects changes to either post content or template
+buildPost :: FilePath -> Action Post
+buildPost srcPath = cacheAction ("build" :: T.Text, srcPath) $ do
+  liftIO . putStrLn $ "Rebuilding post: " <> srcPath
+  postContent <- readFile' srcPath
+  -- load post content and metadata as JSON blob
+  postData <- markdownToHTML . T.pack $ postContent
+  let postUrl = T.pack . dropDirectory1 $ srcPath -<.> "html"
+      withPostUrl = _Object . at "url" ?~ String postUrl
+  -- Add additional metadata we've been able to compute
+  let fullPostData = withPostUrl $ postData
+  template <- compileTemplate' "site/templates/post.html"
+  writeFile' (outputFolder </> T.unpack postUrl) . T.unpack $ substitute template fullPostData
+  -- Convert the metadata into a Post object
+  convert fullPostData
+
+-- | Copy all static files from the listed folders to their destination
+copyStaticFiles :: Action ()
+copyStaticFiles = do
+    filepaths <- getDirectoryFiles "./site/" ["images//*", "css//*", "js//*"]
+    void $ forP filepaths $ \filepath ->
+        copyFileChanged ("site" </> filepath) (outputFolder </> filepath)
+
+-- | Specific build rules for the Shake system
+--   defines workflow to build the website
+buildRules :: Action ()
+buildRules = do
+  allPosts <- buildPosts
+  buildIndex allPosts
+  copyStaticFiles
+
+-- | Kick it all off
+main :: IO ()
+main = do
+  let shOpts = forwardOptions $ shakeOptions { shakeVerbosity = Chatty}
+  shakeArgsForward shOpts buildRules
 ```
 
 Not pictured above is:
 
-- Deserializing post metadata into an object which implements `FromJSON`
-- Using custom Pandoc readers to load other document types
-- Using `jsonCache`s to cache intermediate JSON results to improve build times and simplify logic.
+- Using custom Pandoc readers to load other document types, there are many helpers for this in the [slick library](https://hackage.haskell.org/package/slick)
+- Using custom build tools like sassy css or js minifiers; you can do these things using [Shake](https://hackage.haskell.org/package/shake) directly.

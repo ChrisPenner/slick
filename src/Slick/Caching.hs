@@ -41,7 +41,9 @@ newtype CacheQuery q =
 
 type instance RuleResult (CacheQuery q) = ByteString
 
--- | A wrapper around 'addOracleCache' which given a @q@ which is a 'ShakeValue'
+-- | Note that you probably don't need this if you're using the recommended @Development.Shake.Forward@ module. It can do a lot of caching for you, otherwise look at 'Development.Shake.Forward.cacheAction'.
+--
+-- A wrapper around 'addOracleCache' which given a @q@ which is a 'ShakeValue'
 -- allows caching and retrieving 'Value's within Shake. See documentation on
 -- 'addOracleCache' or see Slick examples for more info.
 --
@@ -78,7 +80,9 @@ jsonCache' loader = unpackJSON
       Left  err -> fail err
       Right res -> pure res
 
--- | A wrapper around 'jsonCache' which simplifies caching of values which do NOT
+-- | Note that you probably don't need this if you're using the recommended @Development.Shake.Forward@ module. It can do a lot of caching for you, otherwise look at 'Development.Shake.Forward.cacheAction'.
+--
+-- A wrapper around 'jsonCache' which simplifies caching of values which do NOT
 -- depend on an input parameter. Unfortunately Shake still requires that the
 -- key type implement several typeclasses, however this is easily accomplished
 -- using @GeneralizedNewtypeDeriving@ and a wrapper around @()@.
@@ -111,7 +115,9 @@ simpleJsonCache' q loader = do
 fmapFmapOptDescr :: (a -> b) -> OptDescr (Either String a) -> OptDescr (Either String b)
 fmapFmapOptDescr f = fmap (fmap f)
 
--- | A version of 'shakeArgsPrunWith' that always do prune at the end.
+-- | Run shake but prune any unsued files at the end.
+--
+--   Adapted from 'shakeArgsPruneWith'
 shakeArgsAlwaysPruneWith :: ShakeOptions
                          -> ([FilePath] -> IO ())
                          -> [OptDescr (Either String a)] -> ([a] -> [String] -> IO (Maybe (Rules ())))

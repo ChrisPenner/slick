@@ -1,44 +1,27 @@
 module Slick
   (
   -- * Slick
-  -- | This module re-exports everything you need to use Slick
+  -- | This module re-exports the basics you need to run slick.
+  -- You may need additional imports from "Slick.Pandoc" or "Slick.Caching".
 
-  -- ** Mustache
-    compileTemplate'
-
-  -- ** Pandoc
-  , PandocReader
-  , PandocWriter
-  , markdownToHTML
+  -- ** Basics
+    markdownToHTML
   , markdownToHTML'
-  , makePandocReader
-  , makePandocReader'
-  , loadUsing
-  , loadUsing'
   , defaultMarkdownOptions
   , defaultHtml5Options
-
-  -- ** Aeson
   , convert
 
-  -- ** Shake
-  , simpleJsonCache
-  , simpleJsonCache'
-  , jsonCache
-  , jsonCache'
-  , shakeArgsAlwaysPruneWith
-  , pruner
+  -- ** Mustache Templating
+  , compileTemplate'
+  , substitute
 
   -- ** Utils
   , getDirectoryPaths
-
-  -- ** Re-exported
-  , module Text.Mustache
   )
 where
 
-import           Slick.Caching
-import           Slick.Mustache
-import           Slick.Pandoc
-import           Slick.Utils
-import           Text.Mustache  hiding ((~>))
+import Slick.Caching
+import Slick.Mustache
+import Slick.Pandoc
+import Slick.Utils
+import Text.Mustache

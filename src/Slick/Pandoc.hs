@@ -36,7 +36,8 @@ import           Text.Pandoc.Shared
 type PandocReader textType = textType -> PandocIO Pandoc
 type PandocWriter = Pandoc -> PandocIO T.Text
 
--- | Reasonable options for reading a markdown file
+-- | Reasonable options for reading a markdown file. Behaves similar to Github Flavoured
+-- Markdown
 defaultMarkdownOptions :: ReaderOptions
 defaultMarkdownOptions =
   def { readerExtensions = exts }
@@ -50,7 +51,7 @@ defaultMarkdownOptions =
      , githubMarkdownExtensions
      ]
 
--- | Reasonable options for rendering to HTML
+-- | Reasonable options for rendering to HTML. Includes default code highlighting rules
 defaultHtml5Options :: WriterOptions
 defaultHtml5Options =
   def { writerHighlightStyle = Just tango
@@ -66,7 +67,9 @@ unPandocM p = do
   either (fail . show) return result
 
 -- | Convert markdown text into a 'Value';
---   The 'Value'  has a "content" key containing rendered HTML
+--
+--   The 'Value'  has a "content" key containing rendered HTML.
+--
 --   Metadata is assigned on the respective keys in the 'Value'
 markdownToHTML :: ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
                -> WriterOptions  -- ^ Pandoc writer options to modify output

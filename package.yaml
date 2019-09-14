@@ -1,10 +1,10 @@
 name:                slick
-version:             0.2.0.0
+version:             0.3.0.0
 github:              "ChrisPenner/slick"
 license:             BSD3
 author:              "Chris Penner"
 maintainer:          "example@example.com"
-copyright:           "2018 Chris Penner"
+copyright:           "2019 Chris Penner"
 
 extra-source-files:
 - README.md

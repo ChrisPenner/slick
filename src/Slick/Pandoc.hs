@@ -13,6 +13,8 @@ module Slick.Pandoc
   , markdownToHTMLWithOpts' 
   , makePandocReader
   , makePandocReader'
+  , makePandocReaderWithMetaWriter
+  , makePandocReaderWithMetaWriter'
   , PandocReader
   , PandocWriter
   , loadUsing
@@ -108,25 +110,54 @@ markdownToHTMLWithOpts' rops wops txt =
 
 -- | Given a reader from 'Text.Pandoc.Readers' this creates a loader which
 --   given the source document will read its metadata into a 'Value'
---   returning both the 'Pandoc' object and the metadata within an 'Action'
+--   returning both the 'Pandoc' object and the metadata within an 'Action'.
+--   The metadata values will be read as Markdown but rendered as plain text,
+--   removing any links, pictures, and inline formatting.
 makePandocReader :: PandocReader textType
-                 -> PandocWriter
                  -> textType
                  -> Action (Pandoc, Value)
-makePandocReader readerFunc writerFunc text = do
+makePandocReader readerFunc text =
+  makePandocReaderWithMetaWriter readerFunc (writePlain def) text
+
+-- | Given a reader from 'Text.Pandoc.Readers', and a writer from
+--   'Text.Pandoc.Writers', this creates a loader which given the source
+--   document will read its metadata as Markdown, then render it into a
+--   'Value' using the writer, returning both the 'Pandoc' object and the
+--   metadata within an 'Action'
+makePandocReaderWithMetaWriter
+    :: PandocReader textType
+    -> PandocWriter
+    -> textType
+    -> Action (Pandoc, Value)
+makePandocReaderWithMetaWriter readerFunc writerFunc text = do
   pdoc@(Pandoc meta _) <- unPandocM $ readerFunc text
   meta' <- flattenMeta writerFunc meta
   return (pdoc, meta')
 
--- | Like 'makePandocReader' but will deserialize the metadata into any object
---   which implements 'FromJSON'. Failure to deserialize will fail the Shake
---   build.
-makePandocReader' :: (FromJSON a) => PandocReader textType
-                  -> PandocWriter
-                  -> textType
-                  -> Action (Pandoc, a)
-makePandocReader' readerFunc writerFunc text = do
-  (pdoc, meta)  <- makePandocReader readerFunc writerFunc text
+-- | Like 'makePandocReader' but will deserialize the metadata
+--   into any object which implements 'FromJSON'. Failure to deserialize will
+--   fail the Shake build. Metadata values will be read as Markdown but
+--   rendered as plain text, removing any links, pictures, and inline
+--   formatting.
+makePandocReader'
+    :: (FromJSON a)
+    => PandocReader textType
+    -> textType
+    -> Action (Pandoc, a)
+makePandocReader' readerFunc text =
+  makePandocReaderWithMetaWriter' readerFunc (writePlain def) text
+
+-- | Like 'makePandocReaderWithMetaWriter' but will deserialize the metadata
+--   into any object which implements 'FromJSON'. Failure to deserialize will
+--   fail the Shake build.
+makePandocReaderWithMetaWriter'
+    :: (FromJSON a)
+    => PandocReader textType
+    -> PandocWriter
+    -> textType
+    -> Action (Pandoc, a)
+makePandocReaderWithMetaWriter' readerFunc writerFunc text = do
+  (pdoc, meta)  <- makePandocReaderWithMetaWriter readerFunc writerFunc text
   convertedMeta <- convert meta
   return (pdoc, convertedMeta)
 
@@ -141,7 +172,7 @@ loadUsing :: PandocReader textType
           -> textType
           -> Action Value
 loadUsing reader writer text = do
-  (pdoc, meta) <- makePandocReader reader writer text
+  (pdoc, meta) <- makePandocReaderWithMetaWriter reader writer text
   outText      <- unPandocM $ writer pdoc
   withContent <- case meta of
       Object m -> return . Object $ HM.insert "content" (String outText) m

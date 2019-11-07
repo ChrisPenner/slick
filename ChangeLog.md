@@ -1,4 +1,7 @@
-# Changelog for sitepipe-shake
+# Changelog for slick
+
+## 1.0.1.0
+- Add `makePandocReaderWithMetaWriter` and `makePandocReaderWithMetaWriter'` for reading in resources with custom Pandoc Writers for metadata.
 
 ## 1.0.0.0
 - Deprecate Slick.Caching, Simplify all other exports down.

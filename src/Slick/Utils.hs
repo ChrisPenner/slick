@@ -9,7 +9,7 @@ module Slick.Utils
   , convert
   ) where
 
-import Data.Aeson
+import Data.Aeson as A
 import Development.Shake
 import Development.Shake.FilePath
 
@@ -33,6 +33,6 @@ getDirectoryPaths extensions dirs =
 --   Failure to deserialize fails the Shake build.
 convert :: (FromJSON a, ToJSON a, FromJSON b) => a -> Action b
 convert a = case fromJSON (toJSON a) of
-  Success r   -> pure r
-  Error   err -> fail $ "json conversion error:" ++ err
+  A.Success r   -> pure r
+  A.Error   err -> fail $ "json conversion error:" ++ err
 

@@ -1,0 +1,35 @@
+name:                slick-pandoc
+version:             0.1.0.0
+github:              "ChrisPenner/slick"
+license:             BSD3
+author:              "Chris Penner"
+maintainer:          "example@example.com"
+copyright:           "2019 Chris Penner"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+synopsis:            A quick & easy static site builder built with shake and pandoc.
+category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- slick-core
+- shake
+- aeson
+- pandoc
+- text
+- unordered-containers
+
+ghc-options:
+- -Wall
+
+library:
+  source-dirs: src

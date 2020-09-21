@@ -1,13 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: f0f250c963e4f6345648991c39e8eee43d66c1fe739aeac8e9e349ad2ce3d9c6
 
-name:           slick
-version:        1.0.1.0
+name:           slick-mustache
+version:        1.0.1.1
 synopsis:       A quick & easy static site builder built with shake and pandoc.
 description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
 category:       Web
@@ -29,26 +27,14 @@ source-repository head
 
 library
   exposed-modules:
-      Slick
-      Slick.Caching
       Slick.Mustache
-      Slick.Pandoc
-      Slick.Shake
-      Slick.Utils
   other-modules:
-      Paths_slick
+      Paths_slick_mustache
   hs-source-dirs:
       src
   ghc-options: -Wall
   build-depends:
-      aeson
-    , base >=4.7 && <5
-    , bytestring
-    , directory
-    , extra
+      base >=4.7 && <5
     , mustache
-    , pandoc
     , shake
-    , text
-    , unordered-containers
   default-language: Haskell2010

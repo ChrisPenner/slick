@@ -1,0 +1,43 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           slick-core
+version:        1.0.1.1
+synopsis:       A quick & easy static site builder built with shake and pandoc.
+description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
+category:       Web
+homepage:       https://github.com/ChrisPenner/slick#readme
+bug-reports:    https://github.com/ChrisPenner/slick/issues
+author:         Chris Penner
+maintainer:     example@example.com
+copyright:      2019 Chris Penner
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/ChrisPenner/slick
+
+library
+  exposed-modules:
+      Slick.Caching
+      Slick.Shake
+      Slick.Utils
+  other-modules:
+      Paths_slick_core
+  hs-source-dirs:
+      src
+  ghc-options: -Wall
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , shake
+  default-language: Haskell2010

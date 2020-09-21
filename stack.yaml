@@ -34,7 +34,10 @@ resolver: lts-14.1
 #  - auto-update
 #  - wai
 packages:
-- .
+- slick
+- slick-core
+- slick-mustache
+- slick-pandoc
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)

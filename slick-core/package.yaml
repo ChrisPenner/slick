@@ -1,5 +1,5 @@
-name:                slick
-version:             1.0.1.1
+name:                slick-core
+version:             0.1.0.0
 github:              "ChrisPenner/slick"
 license:             BSD3
 author:              "Chris Penner"
@@ -23,13 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - shake
 - aeson
-- pandoc
-- text
-- mustache
-- directory
-- extra
 - bytestring
-- unordered-containers
 
 ghc-options:
 - -Wall

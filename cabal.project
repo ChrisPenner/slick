@@ -1,0 +1,4 @@
+packages: slick,
+          slick-core,
+          slick-mustache,
+          slick-pandoc

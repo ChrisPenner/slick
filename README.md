@@ -15,6 +15,11 @@ goals.
 
 See the [hackage docs](https://hackage.haskell.org/package/slick) for in depth help on available combinators.
 
+If you would rather see live examples than documentation, you can check out:
+
+- my own blog at https://chrispenner.ca [source](https://github.com/ChrisPenner/ChrisPenner.github.io/blob/site/app/Main.hs)
+- cvlad's blog at https://cvlad.info [source](https://github.com/vladciobanu/vladciobanu.github.io/blob/main/app/Main.hs)
+
 # Overview
 
 Here's a quick overview of what Slick can do:

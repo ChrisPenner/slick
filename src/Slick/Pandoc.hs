@@ -164,6 +164,25 @@ makePandocReaderWithMetaWriter' readerFunc writerFunc text = do
 --------------------------------------------------------------------------------
 
 -- | Load in a source document using the given 'PandocReader', then render the 'Pandoc'
+--   into text using the given 'PandocWriter'. Takes a second 'PandocWriter' to render
+--   metadata.
+--   Returns a 'Value' wherein the rendered text is set to the "content" key and
+--   any metadata is set to its respective key in the 'Value'
+loadUsingMeta :: PandocReader textType
+          -> PandocWriter
+          -> PandocWriter
+          -> textType
+          -> Action Value
+loadUsingMeta reader writer metaWriter text = do
+  (pdoc, meta) <- makePandocReaderWithMetaWriter reader metaWriter text
+  outText      <- unPandocM $ writer pdoc
+  withContent <- case meta of
+      Object m -> return . Object $ HM.insert "content" (String outText) m
+          -- meta & _Object . at "content" ?~ String outText
+      _ -> fail "Failed to parse metadata"
+  return withContent
+
+-- | Load in a source document using the given 'PandocReader', then render the 'Pandoc'
 --   into text using the given 'PandocWriter'.
 --   Returns a 'Value' wherein the rendered text is set to the "content" key and
 --   any metadata is set to its respective key in the 'Value'
@@ -171,14 +190,7 @@ loadUsing :: PandocReader textType
           -> PandocWriter
           -> textType
           -> Action Value
-loadUsing reader writer text = do
-  (pdoc, meta) <- makePandocReaderWithMetaWriter reader writer text
-  outText      <- unPandocM $ writer pdoc
-  withContent <- case meta of
-      Object m -> return . Object $ HM.insert "content" (String outText) m
-          -- meta & _Object . at "content" ?~ String outText
-      _ -> fail "Failed to parse metadata"
-  return withContent
+loadUsing reader writer text = loadUsingMeta reader writer writer text
 
 -- | Like 'loadUsing' but allows also deserializes the 'Value' into any object
 --   which implements 'FromJSON'.  Failure to deserialize will fail the Shake

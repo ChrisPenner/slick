@@ -168,9 +168,9 @@ makePandocReaderWithMetaWriter' readerFunc writerFunc text = do
 --   metadata.
 --   Returns a 'Value' wherein the rendered text is set to the "content" key and
 --   any metadata is set to its respective key in the 'Value'
-loadUsingMeta :: PandocReader textType
-          -> PandocWriter
-          -> PandocWriter
+loadUsingMeta :: PandocReader textType -- ^ The reader used to load the document
+          -> PandocWriter -- ^ The writer used to render the document itself
+          -> PandocWriter -- ^ The writer used to process metadata.
           -> textType
           -> Action Value
 loadUsingMeta reader writer metaWriter text = do

@@ -3,6 +3,9 @@
 ## 1.1.0.0
 - Upgrade to lts-16.29
 
+## 1.1.1.0
+- Add `loadUsingMeta` to allow specifying a separate pandoc meta writer.
+
 ## 1.0.1.0
 - Add `makePandocReaderWithMetaWriter` and `makePandocReaderWithMetaWriter'` for reading in resources with custom Pandoc Writers for metadata.
 

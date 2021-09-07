@@ -17,6 +17,7 @@ module Slick
   , slickWithOpts
   , markdownToHTML
   , markdownToHTML'
+  , orgToHTML
 
   -- ** Mustache Templating
   , compileTemplate'

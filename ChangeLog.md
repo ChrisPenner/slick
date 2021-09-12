@@ -1,7 +1,10 @@
 # Changelog for slick
 
+## 1.1.2.0
+- Upgrade to lts-18.9 and add support for org-mode documents.
+
 ## 1.1.1.1
-- Upgrade to lts-7.8 and ghc-8.10.4
+- Upgrade to lts-17.8 and ghc-8.10.4
 
 ## 1.1.1.0
 - Add `loadUsingMeta` to allow specifying a separate pandoc meta writer.

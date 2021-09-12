@@ -11,6 +11,7 @@ module Slick.Pandoc
   , markdownToHTML'
   , markdownToHTMLWithOpts
   , markdownToHTMLWithOpts' 
+  , orgToHTML
   , makePandocReader
   , makePandocReader'
   , makePandocReaderWithMetaWriter
@@ -20,6 +21,7 @@ module Slick.Pandoc
   , loadUsing
   , loadUsing'
   , defaultMarkdownOptions
+  , defaultOrgOptions
   , defaultHtml5Options
   , convert
   , flattenMeta
@@ -61,6 +63,18 @@ defaultHtml5Options =
       , writerExtensions     = writerExtensions def
       }
 
+-- | Reasonable options for reading a org file
+-- Org-mode
+defaultOrgOptions :: ReaderOptions
+defaultOrgOptions =
+  def { readerExtensions = exts }
+  where
+    exts = mconcat
+     [ extensionsFromList
+       [ Ext_fenced_code_attributes
+       , Ext_auto_identifiers
+       ]
+     ]
 --------------------------------------------------------------------------------
 
 -- | Handle possible pandoc failure within the Action Monad
@@ -107,6 +121,29 @@ markdownToHTMLWithOpts'
     -> Action a
 markdownToHTMLWithOpts' rops wops txt =
     markdownToHTMLWithOpts rops wops txt >>= convert
+
+-- | Convert org text into a 'Value';
+--
+--   The 'Value'  has a "content" key containing rendered HTML.
+--
+--   Metadata is assigned on the respective keys in the 'Value'
+orgToHTML :: T.Text
+               -> Action Value
+orgToHTML txt =
+    orgToHTMLWithOpts defaultOrgOptions defaultHtml5Options txt
+
+-- | Like 'orgToHTML' but allows returning any JSON serializable object
+orgToHTMLWithOpts
+    :: ReaderOptions  -- ^ Pandoc reader options to specify extensions or other functionality
+    -> WriterOptions  -- ^ Pandoc writer options to modify output
+    -> T.Text         -- ^ Text for conversion
+    -> Action Value
+orgToHTMLWithOpts rops wops txt =
+  loadUsing
+    (readOrg rops)
+    (writeHtml5String wops)
+    txt
+
 
 -- | Given a reader from 'Text.Pandoc.Readers' this creates a loader which
 --   given the source document will read its metadata into a 'Value'

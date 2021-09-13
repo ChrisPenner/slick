@@ -1,5 +1,8 @@
 # Changelog for slick
 
+## 1.1.2.1
+- Add missing export for orgModeToHTML'
+
 ## 1.1.2.0
 - Upgrade to lts-18.9 and add support for org-mode documents.
 

@@ -23,6 +23,7 @@ module Slick.Pandoc
   , PandocWriter
   , loadUsing
   , loadUsing'
+  , loadUsingMeta
   , defaultMarkdownOptions
   , defaultOrgModeOptions
   , defaultHtml5Options

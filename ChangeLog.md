@@ -1,5 +1,8 @@
 # Changelog for slick
 
+## 1.1.2.2
+- Add missing export for loadUsingMeta
+
 ## 1.1.2.1
 - Add missing export for orgModeToHTML'
 

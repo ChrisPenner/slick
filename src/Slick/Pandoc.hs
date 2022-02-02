@@ -32,11 +32,11 @@ module Slick.Pandoc
   ) where
 
 import Data.Aeson
+import Data.Aeson.KeyMap as KM
 import Development.Shake
 import Text.Pandoc
 import Text.Pandoc.Highlighting
 import Slick.Utils
-import Data.HashMap.Strict as HM
 
 import qualified Data.Text                  as T
 
@@ -233,7 +233,7 @@ loadUsingMeta reader writer metaWriter text = do
   (pdoc, meta) <- makePandocReaderWithMetaWriter reader metaWriter text
   outText      <- unPandocM $ writer pdoc
   withContent <- case meta of
-      Object m -> return . Object $ HM.insert "content" (String outText) m
+      Object m -> return . Object $ KM.insert "content" (String outText) m
           -- meta & _Object . at "content" ?~ String outText
       _ -> fail "Failed to parse metadata"
   return withContent

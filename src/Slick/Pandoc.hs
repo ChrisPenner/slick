@@ -32,7 +32,7 @@ module Slick.Pandoc
   ) where
 
 import Data.Aeson
-import Data.Aeson.KeyMap as KM
+import qualified Data.Aeson.KeyMap as KM
 import Development.Shake
 import Text.Pandoc
 import Text.Pandoc.Highlighting

@@ -152,7 +152,11 @@ buildRules = do
 -- | Kick it all off
 main :: IO ()
 main = do
-  let shOpts = forwardOptions $ shakeOptions { shakeVerbosity = Chatty}
+  let shOpts =
+        forwardOptions $ shakeOptions
+          { shakeVerbosity = Chatty
+          , shakeLintInside = ["./site/"]
+          }
   shakeArgsForward shOpts buildRules
 ```
 

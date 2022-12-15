@@ -1,3 +1,6 @@
-resolver: lts-18.9
+resolver: lts-19.0
 packages:
 - .
+
+extra-deps:
+- mustache-2.3.2@sha256:a67200712e329777eeafd4f72b09f0afd2de7d2401f7b42d24abb343e54b60a9,3180

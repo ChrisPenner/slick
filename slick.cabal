@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3b58d1e78fabda151554d53725f191144f5bdf6dc1b52bd0309bff7414be4f26
+-- hash: 73d89b294052a33be586d344ec2f97bbbf5559e98e3a6b2bc6c391c6d38a47e6
 
 name:           slick
-version:        1.2.0.0
+version:        1.2.1.0
 synopsis:       A quick & easy static site builder built with shake and pandoc.
 description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
 category:       Web

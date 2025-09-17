@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.36.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2ae594a5aa8af0ada49bbe938fad05a415e13c691f37cc69c1b98b65d9ad5e70
+-- hash: c5d9bb40bc7a84756e0ed96f671ee34eca230bf8144cdfd7e77f0e2457eadfbc
 
 name:           slick
 version:        1.3.1.0
@@ -47,7 +47,7 @@ library
     , directory
     , extra
     , mustache
-    , pandoc
+    , pandoc >=3.8
     , shake
     , text
     , unordered-containers

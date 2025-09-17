@@ -64,7 +64,7 @@ defaultMarkdownOptions =
 -- | Reasonable options for rendering to HTML. Includes default code highlighting rules
 defaultHtml5Options :: WriterOptions
 defaultHtml5Options =
-  def { writerHighlightStyle = Just tango
+  def { writerHighlightMethod = Skylighting tango
       , writerExtensions     = writerExtensions def
       }
 

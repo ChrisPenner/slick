@@ -4,18 +4,18 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c5d9bb40bc7a84756e0ed96f671ee34eca230bf8144cdfd7e77f0e2457eadfbc
+-- hash: 710898ee46d42b0dd2fae9b00bc93faa717d4b81a33323c6e28c94e94fe72a81
 
 name:           slick
-version:        1.3.1.0
+version:        1.4.0.0
 synopsis:       A quick & easy static site builder built with shake and pandoc.
 description:    Please see the README on GitHub at <https://github.com/ChrisPenner/slick#readme>
 category:       Web
 homepage:       https://github.com/ChrisPenner/slick#readme
 bug-reports:    https://github.com/ChrisPenner/slick/issues
 author:         Chris Penner
-maintainer:     example@example.com
-copyright:      2019-2021 Chris Penner
+maintainer:     christopher.penner@gmail.com
+copyright:      2019-present Chris Penner
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
